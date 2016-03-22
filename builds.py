@@ -42,7 +42,7 @@ repo_urls = {
     'try': 'http://hg.mozilla.org/try/',
 }
 
-urls_repos = dict([(url, repo) for repo, url in repo_urls.items()])
+urls_repos = {url: repo for repo, url in repo_urls.items()}
 
 # lifted from mozregression:utils.py:urlLinks
 def url_links(url):
