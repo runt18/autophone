@@ -224,10 +224,10 @@ class ADBCommand(object):
         start_time = time.time()
         adb_process.exitcode = adb_process.proc.poll()
         while ((time.time() - start_time) <= timeout and
-               adb_process.exitcode == None):
+               adb_process.exitcode is None):
             time.sleep(self._polling_interval)
             adb_process.exitcode = adb_process.proc.poll()
-        if adb_process.exitcode == None:
+        if adb_process.exitcode is None:
             adb_process.proc.kill()
             adb_process.timedout = True
             adb_process.exitcode = adb_process.proc.poll()
@@ -1038,10 +1038,10 @@ class ADBDevice(ADBCommand):
 
         start_time = time.time()
         exitcode = adb_process.proc.poll()
-        while ((time.time() - start_time) <= timeout) and exitcode == None:
+        while ((time.time() - start_time) <= timeout) and exitcode is None:
             time.sleep(self._polling_interval)
             exitcode = adb_process.proc.poll()
-        if exitcode == None:
+        if exitcode is None:
             adb_process.proc.kill()
             adb_process.timedout = True
             adb_process.exitcode = adb_process.proc.poll()
