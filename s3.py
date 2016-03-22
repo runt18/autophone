@@ -54,7 +54,9 @@ class S3Bucket(object):
         keys = [key for key in self.bucket.list(prefix=prefix) if keypattern.match(key.name)]
         return keys
 
-    def rm(self, keys=[], keypattern=None, prefix=''):
+    def rm(self, keys=None, keypattern=None, prefix=''):
+        if keys is None:
+            keys = []
         assert isinstance(keys, list) or isinstance(keypattern, str)
 
         if isinstance(keypattern, str):

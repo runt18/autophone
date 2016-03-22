@@ -122,7 +122,7 @@ class AutophoneTreeherder(object):
             logger.debug('AutophoneTreeherder shared_lock.release')
             self.shared_lock.release()
 
-    def submit_pending(self, machine, build_url, project, revision_hash, tests=[]):
+    def submit_pending(self, machine, build_url, project, revision_hash, tests=None):
         """Submit tests pending notifications to Treeherder
 
         :param machine: machine id
@@ -131,6 +131,8 @@ class AutophoneTreeherder(object):
         :param revision_hash: Treeherder revision hash of build.
         :param tests: Lists of tests to be reported.
         """
+        if tests is None:
+            tests = []
         logger.debug('AutophoneTreeherder.submit_pending: %s' % tests)
         if not self.url or not revision_hash:
             logger.debug('AutophoneTreeherder.submit_pending: no url/revision hash')
@@ -189,7 +191,7 @@ class AutophoneTreeherder(object):
 
         self.queue_request(machine, project, tjc)
 
-    def submit_running(self, machine, build_url, project, revision_hash, tests=[]):
+    def submit_running(self, machine, build_url, project, revision_hash, tests=None):
         """Submit tests running notifications to Treeherder
 
         :param machine: machine id
@@ -198,6 +200,8 @@ class AutophoneTreeherder(object):
         :param revision_hash: Treeherder revision hash of build.
         :param tests: Lists of tests to be reported.
         """
+        if tests is None:
+            tests = []
         logger.debug('AutophoneTreeherder.submit_running: %s' % tests)
         if not self.url or not revision_hash:
             logger.debug('AutophoneTreeherder.submit_running: no url/revision hash')

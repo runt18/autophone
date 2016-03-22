@@ -1155,7 +1155,7 @@ class ADBDevice(ADBCommand):
             args.extend(['-b', b])
         return args
 
-    def clear_logcat(self, timeout=None, buffers=[]):
+    def clear_logcat(self, timeout=None, buffers=None):
         """Clears logcat via adb logcat -c.
 
         :param timeout: The maximum time in
@@ -1170,23 +1170,19 @@ class ADBDevice(ADBCommand):
         :raises: * ADBTimeoutError
                  * ADBError
         """
+        if buffers is None:
+            buffers = []
         buffers = self._get_logcat_buffer_args(buffers)
         cmds = ["logcat", "-c"] + buffers
         self.command_output(cmds, timeout=timeout)
         self.shell_output("log logcat cleared", timeout=timeout)
 
     def get_logcat(self,
-                   filter_specs=[
-                       "dalvikvm:I",
-                       "ConnectivityService:S",
-                       "WifiMonitor:S",
-                       "WifiStateTracker:S",
-                       "wpa_supplicant:S",
-                       "NetworkStateTracker:S"],
+                   filter_specs=None,
                    format="time",
-                   filter_out_regexps=[],
+                   filter_out_regexps=None,
                    timeout=None,
-                   buffers=[]):
+                   buffers=None):
         """Returns the contents of the logcat file as a list of strings.
 
         :param list filter_specs: Optional logcat messages to
@@ -1207,6 +1203,18 @@ class ADBDevice(ADBCommand):
         :raises: * ADBTimeoutError
                  * ADBError
         """
+        if filter_specs is None:
+            filter_specs = [
+                       "dalvikvm:I",
+                       "ConnectivityService:S",
+                       "WifiMonitor:S",
+                       "WifiStateTracker:S",
+                       "wpa_supplicant:S",
+                       "NetworkStateTracker:S"]
+        if filter_out_regexps is None:
+            filter_out_regexps = []
+        if buffers is None:
+            buffers = []
         buffers = self._get_logcat_buffer_args(buffers)
         cmds = ["logcat", "-v", format, "-d"] + buffers + filter_specs
         lines = self.command_output(cmds, timeout=timeout).split('\r')

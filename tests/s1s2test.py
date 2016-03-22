@@ -23,8 +23,10 @@ logger = logging.getLogger()
 
 class S1S2Test(PerfTest):
     def __init__(self, dm=None, phone=None, options=None,
-                 config_file=None, chunk=1, repos=[]):
+                 config_file=None, chunk=1, repos=None):
 
+        if repos is None:
+            repos = []
         PerfTest.__init__(self, dm=dm, phone=phone, options=options,
                           config_file=config_file, chunk=chunk, repos=repos)
 

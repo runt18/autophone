@@ -20,7 +20,9 @@ from phonetest import PhoneTestResult
 
 class WebappStartupTest(PerfTest):
     def __init__(self, dm=None, phone=None, options=None,
-                 config_file=None, chunk=1, repos=[]):
+                 config_file=None, chunk=1, repos=None):
+        if repos is None:
+            repos = []
         PerfTest.__init__(self, dm=dm, phone=phone, options=options,
                           config_file=config_file, chunk=chunk, repos=repos)
         self.webappstartup_name = None
@@ -65,10 +67,12 @@ class WebappStartupTest(PerfTest):
                 self.loggerdeco.exception('Exception uninstalling %s' %
                                           self.webappstartup_name)
 
-    def create_profile(self, custom_addons=[], custom_prefs=None, root=True):
+    def create_profile(self, custom_addons=None, custom_prefs=None, root=True):
         # Create, install and initialize the profile to be
         # used in the test.
 
+        if custom_addons is None:
+            custom_addons = []
         temp_addons = ['quitter.xpi']
         temp_addons.extend(custom_addons)
         addons = ['%s/xpi/%s' % (os.getcwd(), addon) for addon in temp_addons]
