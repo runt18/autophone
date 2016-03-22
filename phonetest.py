@@ -281,10 +281,12 @@ class PhoneTest(object):
 
         return matches
 
-    def __init__(self, dm=None, phone=None, options=None, config_file=None, chunk=1, repos=[]):
+    def __init__(self, dm=None, phone=None, options=None, config_file=None, chunk=1, repos=None):
         # Ensure that repos is a list and that it is sorted in order
         # for comparisons with the tests loaded from the jobs database
         # to work.
+        if repos is None:
+            repos = []
         assert type(repos) == list, 'PhoneTest repos argument must be a list'
         repos.sort()
         self._add_instance(phone.id, config_file, chunk)
@@ -752,10 +754,12 @@ class PhoneTest(object):
             else:
                 self.loggerdeco.warning('Unknown error reason: %s' % error['reason'])
 
-    def create_profile(self, custom_addons=[], custom_prefs=None, root=True):
+    def create_profile(self, custom_addons=None, custom_prefs=None, root=True):
         # Create, install and initialize the profile to be
         # used in the test.
 
+        if custom_addons is None:
+            custom_addons = []
         temp_addons = ['quitter.xpi']
         temp_addons.extend(custom_addons)
         addons = ['%s/xpi/%s' % (os.getcwd(), addon) for addon in temp_addons]
@@ -1043,7 +1047,9 @@ class PhoneTest(object):
 
         return success
 
-    def run_fennec_with_profile(self, appname, url, extra_args=[]):
+    def run_fennec_with_profile(self, appname, url, extra_args=None):
+        if extra_args is None:
+            extra_args = []
         self.loggerdeco.debug('run_fennec_with_profile: %s %s %s' %
                               (appname, url, extra_args))
         local_extra_args = ['-profile', self.profile_path]

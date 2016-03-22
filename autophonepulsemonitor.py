@@ -163,13 +163,19 @@ class AutophonePulseMonitor(object):
                  build_callback=None,
                  jobaction_callback=None,
                  treeherder_url=None,
-                 trees=[],
-                 platforms=[],
-                 buildtypes=[],
+                 trees=None,
+                 platforms=None,
+                 buildtypes=None,
                  timeout=5,
                  shared_lock=None,
                  verbose=False):
 
+        if trees is None:
+            trees = []
+        if platforms is None:
+            platforms = []
+        if buildtypes is None:
+            buildtypes = []
         assert userid, "userid is required."
         assert password, "password is required."
         assert build_callback, "build_callback is required."

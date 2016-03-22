@@ -772,7 +772,9 @@ class BuildCache(object):
             'metadata': metadata_json
         }
 
-    def clean_cache(self, preserve=[]):
+    def clean_cache(self, preserve=None):
+        if preserve is None:
+            preserve = []
         def lastused_path(d):
             return os.path.join(self.cache_dir, d, 'lastused')
 
