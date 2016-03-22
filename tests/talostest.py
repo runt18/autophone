@@ -48,7 +48,7 @@ class TalosTest(PerfTest):
                     manifest = self._tests[test_name]
 
                     if not os.path.exists(manifest):
-                        self.loggerdeco.debug('ignoring manifest for %s' % manifest)
+                        self.loggerdeco.debug('ignoring manifest for {0!s}'.format(manifest))
                         continue
 
                     with open(manifest, 'r') as fHandle:
@@ -57,7 +57,7 @@ class TalosTest(PerfTest):
                     manifest_path = os.path.dirname(manifest)
                     manifest_file = os.path.basename(manifest)
                     test_manifest_path = os.path.join(manifest_path, 'manifest')
-                    test_manifest_file = "%s.%s" % (manifest_file, test_location)
+                    test_manifest_file = "{0!s}.{1!s}".format(manifest_file, test_location)
                     test_manifest = os.path.join(test_manifest_path, test_manifest_file)
 
                     if not os.path.isdir(test_manifest_path):
@@ -77,9 +77,9 @@ class TalosTest(PerfTest):
                                                  test_manifest_file)
                     self._pushes[test_manifest] = dest_manifest
 
-                    extra_args = "-tp file://%s %s" % (dest_manifest, tpargs)
+                    extra_args = "-tp file://{0!s} {1!s}".format(dest_manifest, tpargs)
 
-                    self._test_args["%s-%s" % (test_location, test_name)] = extra_args
+                    self._test_args["{0!s}-{1!s}".format(test_location, test_name)] = extra_args
 
                     self.loggerdeco.debug(
                         'generating manifest: test_location: %s, test_path: %s, '
@@ -97,7 +97,7 @@ class TalosTest(PerfTest):
 
     @property
     def name(self):
-        return 'autophone-talos%s' % self.name_suffix
+        return 'autophone-talos{0!s}'.format(self.name_suffix)
 
     def run_job(self):
         is_test_completed = False
@@ -129,8 +129,7 @@ class TalosTest(PerfTest):
                            'testname': testname},
                 extraformat='%(phoneid)s|%(buildid)s|%(testname)s|%(message)s')
             self.dm._logger = self.loggerdeco
-            self.loggerdeco.info('Running test (%d/%d)' %
-                                 (testnum, testcount))
+            self.loggerdeco.info('Running test ({0:d}/{1:d})'.format(testnum, testcount))
 
             # success == False indicates that none of the attempts
             # were successful in getting any measurement. This is
@@ -147,8 +146,7 @@ class TalosTest(PerfTest):
                                            command['test_result'])
                 break
 
-            self.update_status(message='Test %d/%d, for test_args %s' %
-                               (testnum, testcount, test_args))
+            self.update_status(message='Test {0:d}/{1:d}, for test_args {2!s}'.format(testnum, testcount, test_args))
 
             if not self.create_profile(custom_addons=custom_addons):
                 self.test_failure(test_args,
@@ -177,10 +175,9 @@ class TalosTest(PerfTest):
                 # just bail and report the failure rather than wasting time
                 # continuing more attempts.
                 self.loggerdeco.info(
-                    'Failed to get measurements for test %s' % (testname))
+                    'Failed to get measurements for test {0!s}'.format((testname)))
                 self.worker_subprocess.mailer.send(
-                    '%s %s failed for Build %s %s on %s %s' %
-                    (self.__class__.__name__, testname, self.build.tree,
+                    '{0!s} {1!s} failed for Build {2!s} {3!s} on {4!s} {5!s}'.format(self.__class__.__name__, testname, self.build.tree,
                      self.build.id, host(), self.phone.id),
                     'No measurements were detected for test %s.\n\n'
                     'Job        %s\n'
@@ -265,7 +262,7 @@ I/GeckoDump( 2284): __startTimestamp1433438438092__endTimestamp
         while attempt <= max_attempts and pageload_metric['summary'] == 0:
             buf = self.logcat.get()
             for line in buf:
-                self.loggerdeco.debug('analyze_logcat: %s' % line)
+                self.loggerdeco.debug('analyze_logcat: {0!s}'.format(line))
                 if re_end_report.match(line):
                     # calculate score
                     data = []

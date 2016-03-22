@@ -67,7 +67,7 @@ class BuildCacheHandler(SocketServer.BaseRequestHandler):
                 except Exception, e:
                     results = {
                         'success': False,
-                        'error': 'Exception: %s' % e,
+                        'error': 'Exception: {0!s}'.format(e),
                         'metadata': ''
                     }
                 finally:

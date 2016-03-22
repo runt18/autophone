@@ -74,7 +74,7 @@ def parse_datetime(stringval):
                     datetimeval = datetime.datetime.strptime(stringval, '%Y-%m-%d')
 
     if not format:
-        raise ValueError('%s is not a recognized datetime format' % stringval)
+        raise ValueError('{0!s} is not a recognized datetime format'.format(stringval))
 
     return format, set_time_zone(datetimeval)
 
@@ -104,7 +104,7 @@ def convert_datetime_to_string(dateval, format):
     if format == DATETIME:
         return dateval.strftime('%Y-%m-%dT%H:%M:%S')
 
-    raise ValueError("%s is not a recognized format name" % format)
+    raise ValueError("{0!s} is not a recognized format name".format(format))
 
 def set_time_zone(dateval):
     """ Set a date's timezone to Mozilla Time.

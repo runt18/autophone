@@ -19,7 +19,7 @@ logger = logging.getLogger()
 
 class S3Error(Exception):
     def __init__(self, message):
-        Exception.__init__(self, 'S3Error: %s' % message)
+        Exception.__init__(self, 'S3Error: {0!s}'.format(message))
 
 class S3Bucket(object):
 
@@ -37,7 +37,7 @@ class S3Bucket(object):
             conn = boto.s3.connection.S3Connection(self.access_key_id,
                                                    self.access_secret_key)
             if not conn.lookup(self.bucket_name):
-                raise S3Error('bucket %s not found' % self.bucket_name)
+                raise S3Error('bucket {0!s} not found'.format(self.bucket_name))
             if not self._bucket:
                 self._bucket = conn.get_bucket(self.bucket_name)
             return self._bucket
@@ -46,7 +46,7 @@ class S3Bucket(object):
             raise S3Error('Authentication failed')
         except boto.exception.S3ResponseError, e:
             logger.exception()
-            raise S3Error('%s' % e)
+            raise S3Error('{0!s}'.format(e))
 
     def ls(self, keypattern='.*', prefix=''):
         if isinstance(keypattern, str):
@@ -64,13 +64,13 @@ class S3Bucket(object):
                 key.delete()
         except boto.exception.S3ResponseError, e:
             logger.exception(str(e))
-            raise S3Error('%s' % e)
+            raise S3Error('{0!s}'.format(e))
 
     def upload(self, path, destination):
         try:
             key = self.bucket.get_key(destination)
             if not key:
-                logger.debug('Creating key: %s' % destination)
+                logger.debug('Creating key: {0!s}'.format(destination))
                 key = self.bucket.new_key(destination)
 
             ext = os.path.splitext(path)[-1]
@@ -78,23 +78,23 @@ class S3Bucket(object):
                 key.set_metadata('Content-Type', 'text/plain')
 
             with tempfile.NamedTemporaryFile('w+b', suffix=ext) as tf:
-                logger.debug('Compressing: %s' % path)
+                logger.debug('Compressing: {0!s}'.format(path))
                 with gzip.GzipFile(path, 'wb', fileobj=tf) as gz:
                     with open(path, 'rb') as f:
                         gz.writelines(f)
                 tf.flush()
                 tf.seek(0)
                 key.set_metadata('Content-Encoding', 'gzip')
-                logger.debug('Setting key contents from: %s' % tf.name)
+                logger.debug('Setting key contents from: {0!s}'.format(tf.name))
                 key.set_contents_from_file(tf)
 
             url = key.generate_url(expires_in=0,
                                    query_auth=False)
         except boto.exception.S3ResponseError, e:
             logger.exception(str(e))
-            raise S3Error('%s' % e)
+            raise S3Error('{0!s}'.format(e))
 
-        logger.debug('File %s uploaded to: %s' % (path, url))
+        logger.debug('File {0!s} uploaded to: {1!s}'.format(path, url))
         return url
 
 if __name__ == '__main__':
@@ -222,7 +222,7 @@ if __name__ == '__main__':
         parser.print_usage()
         sys.exit(1)
 
-    logger.debug('bucket %s' % cmd_options.s3_upload_bucket)
+    logger.debug('bucket {0!s}'.format(cmd_options.s3_upload_bucket))
 
     s3bucket = S3Bucket(cmd_options.s3_upload_bucket,
                         cmd_options.aws_access_key_id,

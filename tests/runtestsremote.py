@@ -36,8 +36,7 @@ class UnitTest(PhoneTest):
         unittest_config_file = self.cfg.get('runtests', 'unittest_defaults')
         self.unittest_cfg.read(unittest_config_file)
 
-        self.loggerdeco.info('config_file = %s, unittest_config_file = %s' %
-                             (config_file, unittest_config_file))
+        self.loggerdeco.info('config_file = {0!s}, unittest_config_file = {1!s}'.format(config_file, unittest_config_file))
 
         self.parms = {
             'phoneid': self.phone.id,
@@ -72,7 +71,7 @@ class UnitTest(PhoneTest):
 
     @property
     def name(self):
-        return 'autophone-%s%s' % (self.parms['test_name'], self.name_suffix)
+        return 'autophone-{0!s}{1!s}'.format(self.parms['test_name'], self.name_suffix)
 
     def get_test_package_names(self):
         return set(self.parms['test_packages'])
@@ -102,12 +101,11 @@ class UnitTest(PhoneTest):
             self.phone_ip_address = self.dm.get_ip_address()
             if self.phone_ip_address:
                 break
-            self.loggerdeco.info('Attempt %d/%d failed to get ip address' %
-                                 (attempt,
+            self.loggerdeco.info('Attempt {0:d}/{1:d} failed to get ip address'.format(attempt,
                                   self.options.device_ready_retry_attempts))
             time.sleep(self.options.device_ready_retry_wait)
         if not self.phone_ip_address:
-            raise Exception('PhoneTest: Failed to get phone %s ip address' % self.phone.id)
+            raise Exception('PhoneTest: Failed to get phone {0!s} ip address'.format(self.phone.id))
 
         self.parms['host_ip_address'] = self.phone.host_ip
         self.parms['app_name'] = self.build.app_name
@@ -117,7 +115,7 @@ class UnitTest(PhoneTest):
         self.parms['buildid'] = self.build.id
         self.parms['tree'] = self.build.tree
 
-        self.unittest_logpath = '%s/tests/%s-%s-%s-%s.log' % (
+        self.unittest_logpath = '{0!s}/tests/{1!s}-{2!s}-{3!s}-{4!s}.log'.format(
             build_dir,
             self.parms['test_name'],
             os.path.basename(self.config_file),
@@ -138,7 +136,7 @@ class UnitTest(PhoneTest):
             if os.path.exists(flash_apk):
                 self.dm.install_app(flash_apk)
             else:
-                raise Exception('%s does not exist' % flash_apk)
+                raise Exception('{0!s} does not exist'.format(flash_apk))
 
     def teardown_job(self):
         PhoneTest.teardown_job(self)
@@ -153,11 +151,11 @@ class UnitTest(PhoneTest):
         self.update_status(message='runtestsremote.py run_job start')
 
         if logger.getEffectiveLevel() == logging.DEBUG:
-            self.loggerdeco.debug('phone = %s' % self.phone)
+            self.loggerdeco.debug('phone = {0!s}'.format(self.phone))
 
         if not self.cfg.has_option('runtests', 'test_name'):
-            raise Exception('Job configuration %s does not specify a test' %
-                            self.config_file)
+            raise Exception('Job configuration {0!s} does not specify a test'.format(
+                            self.config_file))
         try:
             is_test_completed = self.runtest()
         except:
@@ -187,24 +185,24 @@ class UnitTest(PhoneTest):
             # runrobocop.py script is available, use that otherwise fall back
             # to the older runtestsremote.py script.
             self.parms['harness_type'] = 'mochitest'
-            runrobocop_path = ('%s/tests/mochitest/runrobocop.py' %
-                               self.parms['build_dir'])
-            self.loggerdeco.debug('create_test_args: runrobocop_path: %s' %
-                                  runrobocop_path)
+            runrobocop_path = ('{0!s}/tests/mochitest/runrobocop.py'.format(
+                               self.parms['build_dir']))
+            self.loggerdeco.debug('create_test_args: runrobocop_path: {0!s}'.format(
+                                  runrobocop_path))
             if os.path.exists(runrobocop_path):
                 test_args = [
                     'mochitest/runrobocop.py',
-                    '--robocop-ini=%s' % self.parms['test_manifest'],
+                    '--robocop-ini={0!s}'.format(self.parms['test_manifest']),
                     '--certificate-path=certs',
-                    '--console-level=%s' % self.parms['console_level'],
+                    '--console-level={0!s}'.format(self.parms['console_level']),
                 ]
             else:
                 test_args = [
                     'mochitest/runtestsremote.py',
-                    '--robocop-ini=%s' % self.parms['test_manifest'],
-                    '--robocop-ids=%s/fennec_ids.txt' % self.parms['build_dir'],
+                    '--robocop-ini={0!s}'.format(self.parms['test_manifest']),
+                    '--robocop-ids={0!s}/fennec_ids.txt'.format(self.parms['build_dir']),
                     '--certificate-path=certs',
-                    '--console-level=%s' % self.parms['console_level'],
+                    '--console-level={0!s}'.format(self.parms['console_level']),
                 ]
 
         elif test_name_lower.startswith('mochitest'):
@@ -213,17 +211,17 @@ class UnitTest(PhoneTest):
             # Create a short version of the testrun manifest file.
             fh, temppath = tempfile.mkstemp(
                 suffix='.json',
-                dir='%s/tests' % self.parms['build_dir'])
+                dir='{0!s}/tests'.format(self.parms['build_dir']))
             os.close(fh)
             os.unlink(temppath)
             self.parms['testrun_manifest_file'] = temppath
             temppath = os.path.basename(temppath)
             test_args = [
                 'mochitest/runtestsremote.py',
-                '--manifest=%s' % self.parms['test_manifest'],
-                '--testrun-manifest-file=%s' % temppath,
+                '--manifest={0!s}'.format(self.parms['test_manifest']),
+                '--testrun-manifest-file={0!s}'.format(temppath),
                 '--certificate-path=certs',
-                '--console-level=%s' % self.parms['console_level'],
+                '--console-level={0!s}'.format(self.parms['console_level']),
             ]
         elif test_name_lower.startswith('reftest'):
             self.parms['harness_type'] = 'reftest'
@@ -232,7 +230,7 @@ class UnitTest(PhoneTest):
                 'reftest/remotereftest.py',
                 '--ignore-window-size',
                 '--bootstrap',
-                '%s' % self.parms['test_manifest'],
+                '{0!s}'.format(self.parms['test_manifest']),
                 ]
         elif test_name_lower.startswith('jsreftest'):
             self.parms['harness_type'] = 'reftest'
@@ -242,7 +240,7 @@ class UnitTest(PhoneTest):
                 '--ignore-window-size',
                 '--bootstrap',
                 '--extra-profile-file=jsreftest/tests/user.js',
-                '%s' % self.parms['test_manifest'],
+                '{0!s}'.format(self.parms['test_manifest']),
                 ]
         elif test_name_lower.startswith('crashtest'):
             self.parms['harness_type'] = 'reftest'
@@ -251,14 +249,14 @@ class UnitTest(PhoneTest):
                 'reftest/remotereftest.py',
                 '--ignore-window-size',
                 '--bootstrap',
-                '%s' % self.parms['test_manifest'],
+                '{0!s}'.format(self.parms['test_manifest']),
                 ]
         else:
-            self.loggerdeco.error('Unknown test_name %s' % self.parms['test_name'])
-            raise Exception('Unknown test_name %s' % self.parms['test_name'])
+            self.loggerdeco.error('Unknown test_name {0!s}'.format(self.parms['test_name']))
+            raise Exception('Unknown test_name {0!s}'.format(self.parms['test_name']))
 
         if self.parms['iterations'] > 1:
-                test_args.append('--repeat=%d' % (self.parms['iterations']-1))
+                test_args.append('--repeat={0:d}'.format((self.parms['iterations']-1)))
 
         self.parms['http_port'] = self.parms['port_manager'].reserve()
         self.parms['ssl_port'] = self.parms['port_manager'].reserve()
@@ -266,7 +264,7 @@ class UnitTest(PhoneTest):
         # Create a short version of the remote logfile name.
         fh, temppath = tempfile.mkstemp(
             suffix='.log',
-            dir='%s/tests' % self.parms['build_dir'])
+            dir='{0!s}/tests'.format(self.parms['build_dir']))
         os.close(fh)
         os.unlink(temppath)
         self.parms['remote_logfile'] = temppath
@@ -277,33 +275,33 @@ class UnitTest(PhoneTest):
         # deleted after the test completes.
         fh, temppath = tempfile.mkstemp(
             suffix='.pid',
-            dir='%s/tests' % self.parms['build_dir'])
+            dir='{0!s}/tests'.format(self.parms['build_dir']))
         os.close(fh)
         os.unlink(temppath)
         pid_file = os.path.basename(temppath)
 
         common_args = [
             '--dm_trans=adb',
-            '--deviceSerial=%s' % self.phone.serial,
-            '--remoteTestRoot=%s' % self.base_device_path,
-            '--app=%s' % self.parms['app_name'],
-            '--xre-path=%s' % self.parms['xre_path'],
-            '--utility-path=%s' % self.parms['utility_path'],
-            '--timeout=%d' % self.parms['time_out'],
-            '--remote-webserver=%s' % self.parms['host_ip_address'],
-            '--http-port=%s' % self.parms['port_manager'].use(self.parms['http_port']),
-            '--ssl-port=%s' % self.parms['port_manager'].use(self.parms['ssl_port']),
-            '--total-chunks=%d' % self.chunks,
-            '--this-chunk=%d' % self.chunk,
-            '--pidfile=%s' % pid_file,
-            '--remote-logfile=%s' % remote_logfile,
+            '--deviceSerial={0!s}'.format(self.phone.serial),
+            '--remoteTestRoot={0!s}'.format(self.base_device_path),
+            '--app={0!s}'.format(self.parms['app_name']),
+            '--xre-path={0!s}'.format(self.parms['xre_path']),
+            '--utility-path={0!s}'.format(self.parms['utility_path']),
+            '--timeout={0:d}'.format(self.parms['time_out']),
+            '--remote-webserver={0!s}'.format(self.parms['host_ip_address']),
+            '--http-port={0!s}'.format(self.parms['port_manager'].use(self.parms['http_port'])),
+            '--ssl-port={0!s}'.format(self.parms['port_manager'].use(self.parms['ssl_port'])),
+            '--total-chunks={0:d}'.format(self.chunks),
+            '--this-chunk={0:d}'.format(self.chunk),
+            '--pidfile={0!s}'.format(pid_file),
+            '--remote-logfile={0!s}'.format(remote_logfile),
         ]
 
         args.extend(test_args)
         args.extend(common_args)
 
         if self.parms['symbols_path'] is not None:
-            args.append('--symbols-path=%s' % self.parms['symbols_path'])
+            args.append('--symbols-path={0!s}'.format(self.parms['symbols_path']))
 
         return args
 
@@ -327,8 +325,8 @@ class UnitTest(PhoneTest):
                        harnessType=self.parms['harness_type'])
         parsed_log = lp.parseFiles()
         if self.options.verbose:
-            self.loggerdeco.debug('process_test_log: LogParser parsed log : %s' %
-                                  json.dumps(parsed_log, indent=2))
+            self.loggerdeco.debug('process_test_log: LogParser parsed log : {0!s}'.format(
+                                  json.dumps(parsed_log, indent=2)))
 
         self.test_result.todo = parsed_log.get('todo', 0)
         self.test_result.passes = parsed_log.get('passes', [])
@@ -340,8 +338,8 @@ class UnitTest(PhoneTest):
                                       test_failure['status'],
                                       test_failure['text'],
                                       PhoneTestResult.TESTFAILED)
-        self.loggerdeco.debug('process_test_log: test_result: %s' %
-                              json.dumps(self.test_result.__dict__, indent=2))
+        self.loggerdeco.debug('process_test_log: test_result: {0!s}'.format(
+                              json.dumps(self.test_result.__dict__, indent=2)))
 
     def runtest(self):
 
@@ -353,10 +351,9 @@ class UnitTest(PhoneTest):
 
         self.loggerdeco.info('runtestsremote.py runtest start')
         for key in self.parms.keys():
-            self.loggerdeco.info('test parameters: %s = %s' %
-                                 (key, self.parms[key]))
+            self.loggerdeco.info('test parameters: {0!s} = {1!s}'.format(key, self.parms[key]))
 
-        self.update_status(message='Starting test %s' % self.parms['test_name'])
+        self.update_status(message='Starting test {0!s}'.format(self.parms['test_name']))
 
         is_test_completed = False
 
@@ -370,9 +367,9 @@ class UnitTest(PhoneTest):
             except Exception, e:
                 self.loggerdeco.exception('runtestsremote.py:runtest: Exception running test.')
                 self.test_result.status = PhoneTestResult.EXCEPTION
-                self.message = 'Exception installing robocop.apk: %s' % e
+                self.message = 'Exception installing robocop.apk: {0!s}'.format(e)
                 with open(self.unittest_logpath, "w") as logfilehandle:
-                    logfilehandle.write('%s\n' % self.message)
+                    logfilehandle.write('{0!s}\n'.format(self.message))
                 return is_test_completed
 
         self.parms['port_manager'] = PortManager(self.parms['host_ip_address'])
@@ -390,7 +387,7 @@ class UnitTest(PhoneTest):
         build_path = os.path.abspath(self.parms['build_dir'])
         python_path =  ':'.join(
             [pkg for pkg in
-             glob.glob('%s/tests/mozbase/*' % build_path)
+             glob.glob('{0!s}/tests/mozbase/*'.format(build_path))
              if os.path.isdir(pkg)])
         env['PYTHONPATH'] = python_path
         try:
@@ -399,7 +396,7 @@ class UnitTest(PhoneTest):
             while True:
                 socket_collision = False
 
-                self.loggerdeco.info('logging to %s' % self.unittest_logpath)
+                self.loggerdeco.info('logging to {0!s}'.format(self.unittest_logpath))
                 if os.path.exists(self.unittest_logpath):
                     os.unlink(self.unittest_logpath)
                 logfilehandle = open(self.unittest_logpath, 'wb')
@@ -407,17 +404,16 @@ class UnitTest(PhoneTest):
                 args = self.create_test_args()
 
                 self.parms['cmdline'] = ' '.join(args)
-                self.loggerdeco.info("cmdline = %s" %
-                                     self.parms['cmdline'])
+                self.loggerdeco.info("cmdline = {0!s}".format(
+                                     self.parms['cmdline']))
 
-                self.update_status(message='Running test %s chunk %d of %d' %
-                                   (self.parms['test_name'],
+                self.update_status(message='Running test {0!s} chunk {1:d} of {2:d}'.format(self.parms['test_name'],
                                     self.chunk, self.chunks))
                 if self.dm.process_exist(self.parms['app_name']):
                     max_kill_attempts = 3
                     for kill_attempt in range(1, max_kill_attempts+1):
                         self.loggerdeco.debug(
-                            'Process %s exists. Attempt %d to kill.' % (
+                            'Process {0!s} exists. Attempt {1:d} to kill.'.format(
                                 self.parms['app_name'], kill_attempt + 1))
                         self.dm.pkill(self.parms['app_name'], root=True)
                         if not self.dm.process_exist(self.parms['app_name']):
@@ -425,8 +421,8 @@ class UnitTest(PhoneTest):
                     if kill_attempt == max_kill_attempts and \
                             self.dm.process_exist(self.parms['app_name']):
                         self.loggerdeco.warning(
-                            'Could not kill process %s.' % (
-                                self.parms['app_name']))
+                            'Could not kill process {0!s}.'.format((
+                                self.parms['app_name'])))
                 proc = subprocess.Popen(
                     args,
                     cwd=os.path.join(self.parms['build_dir'],
@@ -463,15 +459,15 @@ class UnitTest(PhoneTest):
                 if command and command['interrupt']:
                     break
                 elif proc.returncode != 0:
-                    self.message = ('Test exited with return code %d' %
-                                    proc.returncode)
+                    self.message = ('Test exited with return code {0:d}'.format(
+                                    proc.returncode))
                     self.test_failure(
                         self.name, 'TEST_UNEXPECTED_FAIL',
                         self.message,
                         PhoneTestResult.EXCEPTION)
 
-                self.loggerdeco.info('runtestsremote.py return code %d' %
-                                     proc.returncode)
+                self.loggerdeco.info('runtestsremote.py return code {0:d}'.format(
+                                     proc.returncode))
 
                 logfilehandle.close()
                 # XXX: investigate if this is still needed.
@@ -485,14 +481,12 @@ class UnitTest(PhoneTest):
                 if not socket_collision:
                     break
 
-            self.update_status(message='Completed test %s chunk %d of %d' %
-                               (self.parms['test_name'],
+            self.update_status(message='Completed test {0!s} chunk {1:d} of {2:d}'.format(self.parms['test_name'],
                                 self.chunk, self.chunks))
         except:
             if logfilehandle:
                 logfilehandle.close()
-            self.message = ('Exception during test %s chunk %d of %d: %s' %
-                            (self.parms['test_name'],
+            self.message = ('Exception during test {0!s} chunk {1:d} of {2:d}: {3!s}'.format(self.parms['test_name'],
                              self.chunk, self.chunks,
                              traceback.format_exc()))
             self.update_status(message=self.message)
@@ -501,18 +495,18 @@ class UnitTest(PhoneTest):
         finally:
             if logfilehandle:
                 self.process_test_log(logfilehandle)
-            tests_dir = '%s/tests' % self.build.dir
-            test_classifier = '%s-%s-%s' % (self.parms['test_name'],
+            tests_dir = '{0!s}/tests'.format(self.build.dir)
+            test_classifier = '{0!s}-{1!s}-{2!s}'.format(self.parms['test_name'],
                                             self.chunk,
                                             self.parms['phoneid'])
             # Rename the short versions of the files to more readable versions.
             old_file = self.parms.get('testrun_manifest_file', None)
             if old_file and os.path.exists(old_file):
-                new_file = os.path.join(tests_dir, '%s.json' % test_classifier)
+                new_file = os.path.join(tests_dir, '{0!s}.json'.format(test_classifier))
                 os.rename(old_file, new_file)
             old_file = self.parms.get('remote_logfile', None)
             if old_file and os.path.exists(old_file):
-                new_file = os.path.join(tests_dir, 'remote-%s.log' % test_classifier)
+                new_file = os.path.join(tests_dir, 'remote-{0!s}.log'.format(test_classifier))
                 os.rename(old_file, new_file)
         self.loggerdeco.debug('runtestsremote.py runtest exit')
 

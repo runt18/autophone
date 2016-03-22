@@ -26,7 +26,7 @@ def command_str(build, test_names, devices):
     job_data = {'build': build,
                 'test_names': test_names or [],
                 'devices': devices or []}
-    s = 'autophone-triggerjobs %s' % json.dumps(job_data)
+    s = 'autophone-triggerjobs {0!s}'.format(json.dumps(job_data))
     return s
 
 
@@ -38,7 +38,7 @@ def main(args, options):
     try:
         s.connect((options.ip, options.port))
     except socket.error, e:
-        print "Unable to contact Autophone server. %s" % e
+        print "Unable to contact Autophone server. {0!s}".format(e)
         sys.exit(1)
 
     loglevel = e = None
@@ -48,7 +48,7 @@ def main(args, options):
         pass
     finally:
         if e or logging.getLevelName(loglevel) != options.loglevel_name:
-            print 'Invalid log level %s' % options.loglevel_name
+            print 'Invalid log level {0!s}'.format(options.loglevel_name)
             return errno.EINVAL
 
     logger = logging.getLogger()
@@ -106,13 +106,13 @@ def main(args, options):
     commands = [command_str(b, options.test_names, options.devices)
                 for b in build_urls]
     commands.append('exit')
-    logger.info('- %s' % s.recv(1024).strip())
+    logger.info('- {0!s}'.format(s.recv(1024).strip()))
     for c in commands:
-        sc = '%s' % c
+        sc = '{0!s}'.format(c)
         logger.info(sc)
         print(sc)
         s.sendall(c + '\n')
-        sr = '- %s' % s.recv(1024).strip()
+        sr = '- {0!s}'.format(s.recv(1024).strip())
         logger.info(sr)
         print(sr)
     return 0

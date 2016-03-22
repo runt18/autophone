@@ -42,8 +42,8 @@ if __name__ == '__main__':
         sys.exit(errno.EINVAL)
 
     if not os.path.isfile(file):
-        print 'SUTAgent ini file "%s" is not found or not a regular file.' % \
-            file
+        print 'SUTAgent ini file "{0!s}" is not found or not a regular file.'.format( \
+            file)
         sys.exit(errno.EINVAL)
 
     main(ip, port, file)

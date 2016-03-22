@@ -52,7 +52,7 @@ class ADBProcess(object):
         return content
 
     def __str__(self):
-        return ('args: %s, exitcode: %s, stdout: %s, stderr: %s' % (
+        return ('args: {0!s}, exitcode: {1!s}, stdout: {2!s}, stderr: {3!s}'.format(
             ' '.join(self.args), self.exitcode, self.stdout, self.stderr))
 
 # ADBError, ADBRootError, and ADBTimeoutError are treated
@@ -146,7 +146,7 @@ class ADBCommand(object):
         self._timeout = timeout
         self._polling_interval = 0.1
 
-        self._logger.debug("%s: %s" % (self.__class__.__name__,
+        self._logger.debug("{0!s}: {1!s}".format(self.__class__.__name__,
                                        self.__dict__))
 
         # catch early a missing or non executable adb command
@@ -155,7 +155,7 @@ class ADBCommand(object):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE).communicate()
         except Exception, exc:
-            raise ADBError('%s: %s is not executable.' % (exc, adb))
+            raise ADBError('{0!s}: {1!s} is not executable.'.format(exc, adb))
 
     def _get_logger(self, logger_name):
         logger = None
@@ -267,9 +267,9 @@ class ADBCommand(object):
                                              device_serial=device_serial,
                                              timeout=timeout)
             if adb_process.timedout:
-                raise ADBTimeoutError("%s" % adb_process)
+                raise ADBTimeoutError("{0!s}".format(adb_process))
             elif adb_process.exitcode:
-                raise ADBError("%s" % adb_process)
+                raise ADBError("{0!s}".format(adb_process))
             output = adb_process.stdout_file.read().rstrip()
             if self._verbose:
                 self._logger.debug('command_output: %s, '
@@ -581,16 +581,16 @@ class ADBDevice(ADBCommand):
         else:
             raise ADBError("ADBDevice.__init__: ls not found")
         try:
-            self.shell_output("%s -1A /" % self._ls, timeout=timeout)
+            self.shell_output("{0!s} -1A /".format(self._ls), timeout=timeout)
             self._ls += " -1A"
         except ADBError:
             self._ls += " -a"
 
-        self._logger.info("%s supported" % self._ls)
+        self._logger.info("{0!s} supported".format(self._ls))
 
         # Do we have cp?
         self._have_cp = self.shell_bool("type cp", timeout=timeout)
-        self._logger.info("Native cp support: %s" % self._have_cp)
+        self._logger.info("Native cp support: {0!s}".format(self._have_cp))
 
         # Do we have chmod -R?
         try:
@@ -601,13 +601,13 @@ class ADBDevice(ADBCommand):
             if match:
                 self._chmod_R = True
         except (ADBError, ADBTimeoutError), e:
-            self._logger.debug('Check chmod -R: %s' % e)
+            self._logger.debug('Check chmod -R: {0!s}'.format(e))
             match = re_recurse.search(e.message)
             if match:
                 self._chmod_R = True
-        self._logger.info("Native chmod -R support: %s" % self._chmod_R)
+        self._logger.info("Native chmod -R support: {0!s}".format(self._chmod_R))
 
-        self._logger.debug("ADBDevice: %s" % self.__dict__)
+        self._logger.debug("ADBDevice: {0!s}".format(self.__dict__))
 
     def _get_device_serial(self, device):
         if device is None:
@@ -638,7 +638,7 @@ class ADBDevice(ADBCommand):
             return serial
         usb = device.get("usb")
         if usb is not None:
-            return "usb:%s" % usb
+            return "usb:{0!s}".format(usb)
 
         raise ValueError("Unable to get device serial")
 
@@ -681,7 +681,7 @@ class ADBDevice(ADBCommand):
                     needs_quoting = True
                     break
             if needs_quoting:
-                arg = "'%s'" % arg
+                arg = "'{0!s}'".format(arg)
 
             quoted_cmd.append(arg)
 
@@ -762,8 +762,7 @@ class ADBDevice(ADBCommand):
         max_attempts = 3
         for attempt in range(1, max_attempts + 1):
             for test_root in paths:
-                self._logger.debug("Setting test root to %s attempt %d of %d" %
-                                   (test_root, attempt, max_attempts))
+                self._logger.debug("Setting test root to {0!s} attempt {1:d} of {2:d}".format(test_root, attempt, max_attempts))
 
                 if self._try_test_root(test_root):
                     self._test_root = test_root
@@ -776,8 +775,7 @@ class ADBDevice(ADBCommand):
             if attempt != max_attempts:
                 time.sleep(20)
 
-        raise ADBError("Unable to set up test root using paths: [%s]"
-                       % ", ".join(paths))
+        raise ADBError("Unable to set up test root using paths: [{0!s}]".format(", ".join(paths)))
 
     def _try_test_root(self, test_root):
         base_path, sub_path = posixpath.split(test_root)
@@ -790,7 +788,7 @@ class ADBDevice(ADBCommand):
                 self.rm(dummy_dir, recursive=True)
             self.mkdir(dummy_dir, parents=True)
         except ADBError:
-            self._logger.debug("%s is not writable" % test_root)
+            self._logger.debug("{0!s} is not writable".format(test_root))
             return False
 
         return True
@@ -871,7 +869,7 @@ class ADBDevice(ADBCommand):
 
         parts = port.split(":", 1)
         if len(parts) != 2 or parts[0] not in prefixes:
-            raise ValueError("Invalid forward specifier %s" % port)
+            raise ValueError("Invalid forward specifier {0!s}".format(port))
 
     def forward(self, local, remote, allow_rebind=True, timeout=None):
         """Forward a local port to a specific port on the device.
@@ -1008,18 +1006,17 @@ class ADBDevice(ADBCommand):
             # the shell cmd. Prefer Android's su version since it may
             # falsely report support for su -c.
             if self._have_android_su:
-                cmd = "su 0 %s" % cmd
+                cmd = "su 0 {0!s}".format(cmd)
             elif self._have_su:
-                cmd = "su -c \"%s\"" % cmd
+                cmd = "su -c \"{0!s}\"".format(cmd)
             else:
-                raise ADBRootError('Can not run command %s as root!' % cmd)
+                raise ADBRootError('Can not run command {0!s} as root!'.format(cmd))
 
         # prepend cwd and env to command if necessary
         if cwd:
-            cmd = "cd %s && %s" % (cwd, cmd)
+            cmd = "cd {0!s} && {1!s}".format(cwd, cmd)
         if env:
-            envstr = '&& '.join(map(lambda x: 'export %s=%s' %
-                                    (x[0], x[1]), env.iteritems()))
+            envstr = '&& '.join(map(lambda x: 'export {0!s}={1!s}'.format(x[0], x[1]), env.iteritems()))
             cmd = envstr + "&& " + cmd
         cmd += "; echo rc=$?"
 
@@ -1084,7 +1081,7 @@ class ADBDevice(ADBCommand):
             adb_process = self.shell(cmd, env=env, cwd=cwd,
                                      timeout=timeout, root=root)
             if adb_process.timedout:
-                raise ADBTimeoutError("%s" % adb_process)
+                raise ADBTimeoutError("{0!s}".format(adb_process))
             return adb_process.exitcode == 0
         finally:
             if adb_process:
@@ -1118,9 +1115,9 @@ class ADBDevice(ADBCommand):
             adb_process = self.shell(cmd, env=env, cwd=cwd,
                                      timeout=timeout, root=root)
             if adb_process.timedout:
-                raise ADBTimeoutError("%s" % adb_process)
+                raise ADBTimeoutError("{0!s}".format(adb_process))
             elif adb_process.exitcode:
-                raise ADBError("%s" % adb_process)
+                raise ADBError("{0!s}".format(adb_process))
             output = adb_process.stdout_file.read().rstrip()
             if self._verbose:
                 self._logger.debug('shell_output: %s, '
@@ -1148,7 +1145,7 @@ class ADBDevice(ADBCommand):
         valid_buffers = set(['radio', 'main', 'events'])
         invalid_buffers = set(buffers).difference(valid_buffers)
         if invalid_buffers:
-            raise ADBError('Invalid logcat buffers %s not in %s ' % (
+            raise ADBError('Invalid logcat buffers {0!s} not in {1!s} '.format(
                 list(invalid_buffers), list(valid_buffers)))
         args = []
         for b in buffers:
@@ -1231,7 +1228,7 @@ class ADBDevice(ADBCommand):
         :raises: * ADBTimeoutError
                  * ADBError
         """
-        output = self.shell_output('getprop %s' % prop, timeout=timeout)
+        output = self.shell_output('getprop {0!s}'.format(prop), timeout=timeout)
         return output
 
     def get_state(self, timeout=None):
@@ -1272,7 +1269,7 @@ class ADBDevice(ADBCommand):
         if not interfaces:
             interfaces = ["wlan0", "eth0"]
             wifi_interface = self.shell_output('getprop wifi.interface', timeout=timeout)
-            self._logger.debug('get_ip_address: wifi_interface: %s' % wifi_interface)
+            self._logger.debug('get_ip_address: wifi_interface: {0!s}'.format(wifi_interface))
             if wifi_interface and wifi_interface not in interfaces:
                 interfaces = interfaces.append(wifi_interface)
 
@@ -1305,7 +1302,7 @@ class ADBDevice(ADBCommand):
         self._logger.debug('get_ip_address: ifconfig')
         for interface in interfaces:
             try:
-                output = self.shell_output('ifconfig %s' % interface,
+                output = self.shell_output('ifconfig {0!s}'.format(interface),
                                            timeout=timeout)
             except ADBError:
                 output = ''
@@ -1326,8 +1323,7 @@ class ADBDevice(ADBCommand):
 
                 if matched_ip:
                     if not re_bad_addr.match(matched_ip):
-                        self._logger.debug('get_ip_address: found: %s %s' %
-                                           (matched_interface, matched_ip))
+                        self._logger.debug('get_ip_address: found: {0!s} {1!s}'.format(matched_interface, matched_ip))
                         return matched_ip
                     matched_interface = None
                     matched_ip = None
@@ -1362,8 +1358,7 @@ class ADBDevice(ADBCommand):
                     matched_interface = None
                     matched_ip = None
                 elif matched_ip and matched_interface in interfaces:
-                    self._logger.debug('get_ip_address: found: %s %s' %
-                                       (matched_interface, matched_ip))
+                    self._logger.debug('get_ip_address: found: {0!s} {1!s}'.format(matched_interface, matched_ip))
                     return matched_ip
         self._logger.debug('get_ip_address: not found')
         return matched_ip
@@ -1418,45 +1413,42 @@ class ADBDevice(ADBCommand):
         # this type of error, but pass on any other errors that are
         # detected.
         path = posixpath.normpath(path.strip())
-        self._logger.debug('chmod: path=%s, recursive=%s, mask=%s, root=%s' %
-                           (path, recursive, mask, root))
+        self._logger.debug('chmod: path={0!s}, recursive={1!s}, mask={2!s}, root={3!s}'.format(path, recursive, mask, root))
         if recursive and self._chmod_R:
             try:
-                self.shell_output("chmod -R %s %s" % (mask, path),
+                self.shell_output("chmod -R {0!s} {1!s}".format(mask, path),
                                   timeout=timeout, root=root)
             except ADBError, e:
                 if e.message.find('No such file or directory') != -1:
-                    self._logger.warning('chmod -R %s %s: Ignoring Error: %s' %
-                                         (mask, path, e.message))
+                    self._logger.warning('chmod -R {0!s} {1!s}: Ignoring Error: {2!s}'.format(mask, path, e.message))
                 else:
                     raise
             return
 
-        self.shell_output("chmod %s %s" % (mask, path),
+        self.shell_output("chmod {0!s} {1!s}".format(mask, path),
                           timeout=timeout, root=root)
         if recursive and self.is_dir(path, timeout=timeout, root=root):
             files = self.list_files(path, timeout=timeout, root=root)
             for f in files:
                 entry = path + "/" + f
-                self._logger.debug('chmod: entry=%s' % entry)
+                self._logger.debug('chmod: entry={0!s}'.format(entry))
                 if self.is_dir(entry, timeout=timeout, root=root):
-                    self._logger.debug('chmod: recursion entry=%s' % entry)
+                    self._logger.debug('chmod: recursion entry={0!s}'.format(entry))
                     self.chmod(entry, recursive=recursive, mask=mask,
                                timeout=timeout, root=root)
                 elif self.is_file(entry, timeout=timeout, root=root):
                     try:
-                        self.shell_output("chmod %s %s" % (mask, entry),
+                        self.shell_output("chmod {0!s} {1!s}".format(mask, entry),
                                           timeout=timeout, root=root)
-                        self._logger.debug('chmod: file entry=%s' % entry)
+                        self._logger.debug('chmod: file entry={0!s}'.format(entry))
                     except ADBError, e:
                         if e.message.find('No such file or directory') != -1:
-                            self._logger.warning('chmod -R %s %s %s: Ignoring Error: %s' %
-                                                 (mask, path, entry, e))
+                            self._logger.warning('chmod -R {0!s} {1!s} {2!s}: Ignoring Error: {3!s}'.format(mask, path, entry, e))
                         else:
                             raise
                 else:
-                    self._logger.warning('chmod: entry %s does not exist' %
-                                         entry)
+                    self._logger.warning('chmod: entry {0!s} does not exist'.format(
+                                         entry))
 
     def exists(self, path, timeout=None, root=False):
         """Returns True if the path exists on the device.
@@ -1476,7 +1468,7 @@ class ADBDevice(ADBCommand):
                  * ADBRootError
         """
         path = posixpath.normpath(path)
-        return self.shell_bool('ls -a %s' % path, timeout=timeout, root=root)
+        return self.shell_bool('ls -a {0!s}'.format(path), timeout=timeout, root=root)
 
     def is_dir(self, path, timeout=None, root=False):
         """Returns True if path is an existing directory on the device.
@@ -1497,7 +1489,7 @@ class ADBDevice(ADBCommand):
                  * ADBRootError
         """
         path = posixpath.normpath(path)
-        return self.shell_bool('ls -a %s/' % path, timeout=timeout, root=root)
+        return self.shell_bool('ls -a {0!s}/'.format(path), timeout=timeout, root=root)
 
     def is_file(self, path, timeout=None, root=False):
         """Returns True if path is an existing file on the device.
@@ -1544,16 +1536,16 @@ class ADBDevice(ADBCommand):
         data = []
         if self.is_dir(path, timeout=timeout, root=root):
             try:
-                data = self.shell_output("%s %s" % (self._ls, path),
+                data = self.shell_output("{0!s} {1!s}".format(self._ls, path),
                                          timeout=timeout,
                                          root=root).split('\r\n')
-                self._logger.debug('list_files: data: %s' % data)
+                self._logger.debug('list_files: data: {0!s}'.format(data))
             except ADBError:
-                self._logger.error('Ignoring exception in ADBDevice.list_files\n%s' %
-                                   traceback.format_exc())
+                self._logger.error('Ignoring exception in ADBDevice.list_files\n{0!s}'.format(
+                                   traceback.format_exc()))
                 pass
         data[:] = [item for item in data if item]
-        self._logger.debug('list_files: %s' % data)
+        self._logger.debug('list_files: {0!s}'.format(data))
         return data
 
     def mkdir(self, path, parents=False, timeout=None, root=False):
@@ -1581,7 +1573,7 @@ class ADBDevice(ADBCommand):
             if self._mkdir_p is None or self._mkdir_p:
                 # Use shell_bool to catch the possible
                 # non-zero exitcode if -p is not supported.
-                if self.shell_bool('mkdir -p %s' % path, timeout=timeout,
+                if self.shell_bool('mkdir -p {0!s}'.format(path), timeout=timeout,
                                    root=root):
                     self._mkdir_p = True
                     return
@@ -1596,7 +1588,7 @@ class ADBDevice(ADBCommand):
                         if not self.is_dir(name, root=root):
                             # Use shell_output to allow any non-zero
                             # exitcode to raise an ADBError.
-                            self.shell_output('mkdir %s' % name,
+                            self.shell_output('mkdir {0!s}'.format(name),
                                               timeout=timeout, root=root)
 
         # If parents is True and the directory does exist, we don't
@@ -1604,9 +1596,9 @@ class ADBDevice(ADBCommand):
         # directory already exists or if it is a file instead of a
         # directory, mkdir will fail and we will raise an ADBError.
         if not parents or not self.is_dir(path, root=root):
-            self.shell_output('mkdir %s' % path, timeout=timeout, root=root)
+            self.shell_output('mkdir {0!s}'.format(path), timeout=timeout, root=root)
         if not self.is_dir(path, timeout=timeout, root=root):
-            raise ADBError('mkdir %s Failed' % path)
+            raise ADBError('mkdir {0!s} Failed'.format(path))
 
     def push(self, local, remote, timeout=None):
         """Pushes a file or directory to the device.
@@ -1674,9 +1666,9 @@ class ADBDevice(ADBCommand):
         if recursive:
             cmd += " -r"
         try:
-            self.shell_output("%s %s" % (cmd, path), timeout=timeout, root=root)
+            self.shell_output("{0!s} {1!s}".format(cmd, path), timeout=timeout, root=root)
             if self.is_file(path, timeout=timeout, root=root):
-                raise ADBError('rm("%s") failed to remove file.' % path)
+                raise ADBError('rm("{0!s}") failed to remove file.'.format(path))
         except ADBError, e:
             if not force and 'No such file or directory' in e.message:
                 raise
@@ -1698,9 +1690,9 @@ class ADBDevice(ADBCommand):
                  * ADBRootError
                  * ADBError
         """
-        self.shell_output("rmdir %s" % path, timeout=timeout, root=root)
+        self.shell_output("rmdir {0!s}".format(path), timeout=timeout, root=root)
         if self.is_dir(path, timeout=timeout, root=root):
-            raise ADBError('rmdir("%s") failed to remove directory.' % path)
+            raise ADBError('rmdir("{0!s}") failed to remove directory.'.format(path))
 
     # Process management methods
 
@@ -1724,9 +1716,9 @@ class ADBDevice(ADBCommand):
         try:
             adb_process = self.shell("ps", timeout=timeout)
             if adb_process.timedout:
-                raise ADBTimeoutError("%s" % adb_process)
+                raise ADBTimeoutError("{0!s}".format(adb_process))
             elif adb_process.exitcode:
-                raise ADBError("%s" % adb_process)
+                raise ADBError("{0!s}".format(adb_process))
             # first line is the headers
             header = adb_process.stdout_file.readline()
             pid_i = -1
@@ -1739,8 +1731,8 @@ class ADBDevice(ADBCommand):
                 elif item == 'pid':
                     pid_i = i
             if user_i == -1 or pid_i == -1:
-                self._logger.error('get_process_list: %s' % header)
-                raise ADBError('get_process_list: Unknown format: %s: %s' % (
+                self._logger.error('get_process_list: {0!s}'.format(header))
+                raise ADBError('get_process_list: Unknown format: {0!s}: {1!s}'.format(
                     header, adb_process))
             ret = []
             line = adb_process.stdout_file.readline()
@@ -1749,12 +1741,12 @@ class ADBDevice(ADBCommand):
                 try:
                     ret.append([int(els[pid_i]), els[-1], els[user_i]])
                 except ValueError:
-                    self._logger.error('get_process_list: %s %s\n%s' % (
+                    self._logger.error('get_process_list: {0!s} {1!s}\n{2!s}'.format(
                         header, line, traceback.format_exc()))
-                    raise ADBError('get_process_list: %s: %s: %s' % (
+                    raise ADBError('get_process_list: {0!s}: {1!s}: {2!s}'.format(
                         header, line, adb_process))
                 line = adb_process.stdout_file.readline()
-            self._logger.debug('get_process_list: %s' % ret)
+            self._logger.debug('get_process_list: {0!s}'.format(ret))
             return ret
         finally:
             if adb_process and isinstance(adb_process.stdout_file, file):
@@ -1788,7 +1780,7 @@ class ADBDevice(ADBCommand):
         for attempt in range(attempts):
             args = ["kill"]
             if sig:
-                args.append("-%d" % sig)
+                args.append("-{0:d}".format(sig))
             args.extend(pid_list)
             try:
                 self.shell_output(' '.join(args), timeout=timeout, root=root)
@@ -1801,12 +1793,11 @@ class ADBDevice(ADBCommand):
             pid_list = list(pid_set.intersection(current_pid_set))
             if not pid_list:
                 break
-            self._logger.debug("Attempt %d of %d to kill processes %s failed" %
-                               (attempt+1, attempts, pid_list))
+            self._logger.debug("Attempt {0:d} of {1:d} to kill processes {2!s} failed".format(attempt+1, attempts, pid_list))
             time.sleep(wait)
 
         if pid_list:
-            raise ADBError('kill: processes %s not killed' % pid_list)
+            raise ADBError('kill: processes {0!s} not killed'.format(pid_list))
 
     def pkill(self, appname, sig=None, attempts=3, wait=5,
               timeout=None, root=False):
@@ -1868,7 +1859,7 @@ class ADBDevice(ADBCommand):
                  * ADBError
         """
         if not isinstance(process_name, basestring):
-            raise ADBError("Process name %s is not a string" % process_name)
+            raise ADBError("Process name {0!s} is not a string".format(process_name))
 
         # Filter out extra spaces.
         parts = [x for x in process_name.split(' ') if x != '']
@@ -1921,30 +1912,30 @@ class ADBDevice(ADBCommand):
         destination = posixpath.normpath(destination)
         if self._have_cp:
             r = '-R' if recursive else ''
-            self.shell_output('cp %s %s %s' % (r, source, destination),
+            self.shell_output('cp {0!s} {1!s} {2!s}'.format(r, source, destination),
                               timeout=timeout, root=root)
             return
 
         # Emulate cp behavior depending on if source and destination
         # already exists and whether they are a directory or file.
         if not self.exists(source, timeout=timeout, root=root):
-            raise ADBError("cp: can't stat '%s': No such file or directory" %
-                           source)
+            raise ADBError("cp: can't stat '{0!s}': No such file or directory".format(
+                           source))
 
         if self.is_file(source, timeout=timeout, root=root):
             if self.is_dir(destination, timeout=timeout, root=root):
                 # Copy the source file into the destination directory
                 destination = posixpath.join(destination,
                                              posixpath.basename(source))
-            self.shell_output('dd if=%s of=%s' % (source, destination),
+            self.shell_output('dd if={0!s} of={1!s}'.format(source, destination),
                               timeout=timeout, root=root)
             return
 
         if self.is_file(destination, timeout=timeout, root=root):
-            raise ADBError('cp: %s: Not a directory' % destination)
+            raise ADBError('cp: {0!s}: Not a directory'.format(destination))
 
         if not recursive:
-            raise ADBError("cp: omitting directory '%s'" % source)
+            raise ADBError("cp: omitting directory '{0!s}'".format(source))
 
         if self.is_dir(destination, timeout=timeout, root=root):
             # Copy the source directory into the destination directory.
@@ -1987,7 +1978,7 @@ class ADBDevice(ADBCommand):
         """
         source = posixpath.normpath(source)
         destination = posixpath.normpath(destination)
-        self.shell_output('mv %s %s' % (source, destination), timeout=timeout,
+        self.shell_output('mv {0!s} {1!s}'.format(source, destination), timeout=timeout,
                           root=root)
 
     def reboot(self, timeout=None):
@@ -2099,7 +2090,7 @@ class ADBDevice(ADBCommand):
                 m = re.match('up time: ((\d+) days, )*(\d{2}):(\d{2}):(\d{2})',
                              uptime)
                 if m:
-                    uptime = '%d days %d hours %d minutes %d seconds' % tuple(
-                        [int(g or 0) for g in m.groups()[1:]])
+                    uptime = '{0:d} days {1:d} hours {2:d} minutes {3:d} seconds'.format(*tuple(
+                        [int(g or 0) for g in m.groups()[1:]]))
                 info['uptime'] = uptime
         return info

@@ -76,9 +76,9 @@ def get_revision_timestamps(repo, first_revision, last_revision):
 
     returns: first_timestamp, last_timestamp.
     """
-    prefix = '%sjson-pushes?changeset=' % repo_urls[repo]
-    first = utils.get_remote_json('%s%s' % (prefix, first_revision))
-    last = utils.get_remote_json('%s%s' % (prefix, last_revision))
+    prefix = '{0!s}json-pushes?changeset='.format(repo_urls[repo])
+    first = utils.get_remote_json('{0!s}{1!s}'.format(prefix, first_revision))
+    last = utils.get_remote_json('{0!s}{1!s}'.format(prefix, last_revision))
 
     return first[first.keys()[0]]['date'], last[last.keys()[0]]['date']
 
@@ -98,14 +98,14 @@ class BuildLocation(object):
             elif platform.startswith('android'):
                 buildfile_pattern += 'android-arm|'
             else:
-                raise Exception('Unsupported platform: %s' % platform)
+                raise Exception('Unsupported platform: {0!s}'.format(platform))
 
         buildfile_pattern = buildfile_pattern.rstrip('|')
         buildfile_pattern += ')'
         self.buildfile_regex = re.compile(buildfile_pattern)
-        self.build_regex = re.compile("(%s%s)" % (buildfile_pattern,
+        self.build_regex = re.compile("({0!s}{1!s})".format(buildfile_pattern,
                                                   self.buildfile_ext))
-        self.buildtxt_regex = re.compile("(%s)\.txt" % buildfile_pattern)
+        self.buildtxt_regex = re.compile("({0!s})\.txt".format(buildfile_pattern))
         logger.debug('BuildLocation: '
                      'repos: %s, '
                      'buildtypes: %s, '
@@ -172,28 +172,28 @@ class BuildLocation(object):
                     break
             builds = [build for build in builds if platform not in build]
 
-        logger.debug('find_latest_builds: builds: %s' % multiarch_builds)
+        logger.debug('find_latest_builds: builds: {0!s}'.format(multiarch_builds))
         return multiarch_builds
 
     def find_builds_by_directory(self, directory):
-        logger.debug('Finding builds in directory %s' %
-                     directory)
+        logger.debug('Finding builds in directory {0!s}'.format(
+                     directory))
 
         builds = []
         # Ensure directory ends with a trailing /.
         # See https://docs.python.org/2.7/library/os.path.html#os.path.join
         directory = os.path.join(directory, '')
 
-        logger.debug('Checking directory %s...' % directory)
+        logger.debug('Checking directory {0!s}...'.format(directory))
         directory_tuple = urlparse.urlparse(directory)
         if directory_tuple.scheme.startswith('http'):
             build_links = url_links(directory)
             for build_link in build_links:
                 filename = build_link.get_text()
-                logger.debug('find_builds_by_directory: checking filename: %s' % filename)
+                logger.debug('find_builds_by_directory: checking filename: {0!s}'.format(filename))
                 if self.build_regex.match(filename):
-                    logger.debug('find_builds_by_directory: found filename: %s' % filename)
-                    builds.append('%s%s' % (directory, filename))
+                    logger.debug('find_builds_by_directory: found filename: {0!s}'.format(filename))
+                    builds.append('{0!s}{1!s}'.format(directory, filename))
                     break
         else:
             # Make sure the directory does not have a file scheme.
@@ -201,20 +201,19 @@ class BuildLocation(object):
             filepaths = glob.glob(directory + '*')
             for filepath in filepaths:
                 filename = os.path.basename(filepath)
-                logger.debug('find_builds_by_directory: checking %s' % filepath)
+                logger.debug('find_builds_by_directory: checking {0!s}'.format(filepath))
                 if self.build_regex.match(filename):
-                    logger.debug('find_builds_by_directory: found %s' % filepath)
+                    logger.debug('find_builds_by_directory: found {0!s}'.format(filepath))
                     # Make sure the returned build urls have a file scheme.
                     builds.append(urlparse.urljoin('file:', filepath))
                     break
         if not builds:
             logger.error('No builds found.')
-        logger.debug('find_builds_by_directory: builds %s' % builds)
+        logger.debug('find_builds_by_directory: builds {0!s}'.format(builds))
         return builds
 
     def find_builds_by_time(self, start_time, end_time):
-        logger.debug('Finding builds between %s and %s' %
-                     (start_time, end_time))
+        logger.debug('Finding builds between {0!s} and {1!s}'.format(start_time, end_time))
 
         start_time = set_time_zone(start_time)
         end_time = set_time_zone(end_time)
@@ -223,12 +222,12 @@ class BuildLocation(object):
 
         for directory_repo, directory in self.get_search_directories_by_time(start_time,
                                                                              end_time):
-            logger.debug('Checking repo %s directory %s...' % (directory_repo, directory))
+            logger.debug('Checking repo {0!s} directory {1!s}...'.format(directory_repo, directory))
             directory_links = url_links(directory)
             for directory_link in directory_links:
                 directory_name = directory_link.get_text().rstrip('/')
-                directory_href = '%s%s/' % (directory, directory_name)
-                logger.debug('find_builds_by_time: directory: href: %s, name: %s' % (
+                directory_href = '{0!s}{1!s}/'.format(directory, directory_name)
+                logger.debug('find_builds_by_time: directory: href: {0!s}, name: {1!s}'.format(
                     directory_href, directory_name))
                 build_time = self.build_time_from_directory_name(directory_name)
 
@@ -241,18 +240,17 @@ class BuildLocation(object):
                 build_links = url_links(directory_href)
                 for build_link in build_links:
                     filename = build_link.get_text()
-                    logger.debug('find_builds_by_time: checking filename: %s' % filename)
+                    logger.debug('find_builds_by_time: checking filename: {0!s}'.format(filename))
                     if self.build_regex.match(filename):
-                        logger.debug('find_builds_by_time: found filename: %s' % filename)
-                        builds.append('%s%s' % (directory_href, filename))
+                        logger.debug('find_builds_by_time: found filename: {0!s}'.format(filename))
+                        builds.append('{0!s}{1!s}'.format(directory_href, filename))
                         break
         if not builds:
             logger.error('No builds found.')
         return builds
 
     def find_builds_by_revision(self, first_revision, last_revision):
-        logger.debug('Finding builds between revisions %s and %s' %
-                     (first_revision, last_revision))
+        logger.debug('Finding builds between revisions {0!s} and {1!s}'.format(first_revision, last_revision))
 
         range = datetime.timedelta(hours=12)
         builds = []
@@ -264,7 +262,7 @@ class BuildLocation(object):
                     first_revision,
                     last_revision)
             except Exception:
-                logger.exception('repo %s' % repo)
+                logger.exception('repo {0!s}'.format(repo))
                 continue
 
             first_datetime = convert_timestamp_to_date(first_timestamp)
@@ -301,7 +299,7 @@ class BuildLocation(object):
                                         'datetimestring: %s' % (repo, datetimestring))
                             continue
 
-                        logger.debug('find_builds_by_revisions: datetimestring: %s' % datetimestring)
+                        logger.debug('find_builds_by_revisions: datetimestring: {0!s}'.format(datetimestring))
                         link_format, link_datetime = parse_datetime(datetimestring)
                         if not format:
                             format = link_format
@@ -315,11 +313,10 @@ class BuildLocation(object):
                 total_datetimestamps = len(datetimestamps)
                 datetimestamps = sorted(set(datetimestamps))
                 unique_datetimestamps = len(datetimestamps)
-                logger.debug('find_builds_by_revision: total_datetimestamps=%d, unique_datetimestamps=%d' %
-                             (total_datetimestamps,
+                logger.debug('find_builds_by_revision: total_datetimestamps={0:d}, unique_datetimestamps={1:d}'.format(total_datetimestamps,
                               unique_datetimestamps))
 
-                logger.debug('find_builds_by_revisions: datetimestamps: %s' % datetimestamps)
+                logger.debug('find_builds_by_revisions: datetimestamps: {0!s}'.format(datetimestamps))
 
                 start_time = None
                 end_time = None
@@ -343,14 +340,14 @@ class BuildLocation(object):
                                       directory_name))
 
                         try:
-                            links = url_links("%s%s/" % (search_directory, directory_name))
+                            links = url_links("{0!s}{1!s}/".format(search_directory, directory_name))
                         except urllib2.HTTPError:
                             continue
                         for link in links:
                             href = link.get('href')
                             match = self.buildtxt_regex.match(href)
                             if match:
-                                build_url = "%s%s/%s%s" % (search_directory,
+                                build_url = "{0!s}{1!s}/{2!s}{3!s}".format(search_directory,
                                                          directory_name,
                                                          match.group(1),
                                                          self.buildfile_ext)
@@ -393,24 +390,24 @@ class Nightly(BuildLocation):
                                product, build_platforms, buildfile_ext)
         self.nightly_dirname_regexs = []
         for repo in repos:
-            pattern = '(.*)-%s-(' % repo
+            pattern = '(.*)-{0!s}-('.format(repo)
             for platform in self.build_platforms:
                 pattern += platform + '|'
             pattern = pattern.rstrip('|')
             pattern += ')$'
             self.nightly_dirname_regexs.append(re.compile(pattern))
         patterns = [regex.pattern for regex in self.nightly_dirname_regexs]
-        logger.debug('Nightly: nightly_dirname_regexs: %s' % patterns)
+        logger.debug('Nightly: nightly_dirname_regexs: {0!s}'.format(patterns))
 
     def does_build_directory_contain_repo_name(self):
         return True
 
     def get_search_directories_by_time(self, start_time, end_time):
-        logger.debug('Nightly:get_search_directories_by_time(%s, %s)' % (start_time, end_time))
+        logger.debug('Nightly:get_search_directories_by_time({0!s}, {1!s})'.format(start_time, end_time))
         y = start_time.year
         m = start_time.month
         while y < end_time.year or (y == end_time.year and m <= end_time.month):
-            yield None, 'http://ftp.mozilla.org/pub/mobile/nightly/%d/%02d/' % (y, m)
+            yield None, 'http://ftp.mozilla.org/pub/mobile/nightly/{0:d}/{1:02d}/'.format(y, m)
             if m == 12:
                 y += 1
                 m = 1
@@ -418,7 +415,7 @@ class Nightly(BuildLocation):
                 m += 1
 
     def build_time_from_directory_name(self, directory_name):
-        logger.debug('Nightly:build_time_from_directory_name(%s)' % directory_name)
+        logger.debug('Nightly:build_time_from_directory_name({0!s})'.format(directory_name))
         build_time = None
         dirnamematch = None
         for r in self.nightly_dirname_regexs:
@@ -427,8 +424,7 @@ class Nightly(BuildLocation):
                 break
         if dirnamematch:
             format, build_time = parse_datetime(directory_name)
-        logger.debug('Nightly:build_time_from_directory_name: (%s, %s)' %
-                     (directory_name, build_time))
+        logger.debug('Nightly:build_time_from_directory_name: ({0!s}, {1!s})'.format(directory_name, build_time))
         return build_time
 
     def directory_names_from_datetimestamp(self, datetimestamp):
@@ -437,7 +433,7 @@ class Nightly(BuildLocation):
         for platform in self.build_platforms:
             for date in dates:
                 for repo in self.repos:
-                    yield repo, '%s-%s-%s' % (date, repo, platform)
+                    yield repo, '{0!s}-{1!s}-{2!s}'.format(date, repo, platform)
 
 
 class Tinderbox(BuildLocation):
@@ -450,15 +446,15 @@ class Tinderbox(BuildLocation):
                                product, build_platforms, buildfile_ext)
 
     def get_search_directories_by_time(self, start_time, end_time):
-        logger.debug('Tinderbox:get_search_directories_by_time(%s, %s)' % (start_time, end_time))
+        logger.debug('Tinderbox:get_search_directories_by_time({0!s}, {1!s})'.format(start_time, end_time))
         # FIXME: Can we be certain that there's only one buildID (unique
         # timestamp) regardless of repo (at least m-i vs m-c)?
         for platform in self.build_platforms:
             for repo in self.repos:
-                yield repo, '%s%s-%s/' % (self.main_http_url, repo, platform)
+                yield repo, '{0!s}{1!s}-{2!s}/'.format(self.main_http_url, repo, platform)
 
     def build_time_from_directory_name(self, directory_name):
-        logger.debug('Tinderbox:build_time_from_directory_name(%s)' % directory_name)
+        logger.debug('Tinderbox:build_time_from_directory_name({0!s})'.format(directory_name))
         try:
             build_time = convert_timestamp_to_date(int(directory_name))
         except ValueError:
@@ -502,14 +498,14 @@ class BuildCache(object):
 
             build_path = os.path.join(override_build_dir, 'build.apk')
             if not os.path.exists(build_path):
-                raise BuildCacheException('Override Build Directory %s does not contain a build.apk.' %
-                                          override_build_dir)
+                raise BuildCacheException('Override Build Directory {0!s} does not contain a build.apk.'.format(
+                                          override_build_dir))
         if not os.path.exists(self.cache_dir):
             os.mkdir(self.cache_dir)
         self.build_cache_size = build_cache_size
         self.build_cache_expires = build_cache_expires
         self.treeherder_url = treeherder_url
-        logger.debug('BuildCache: %s' % self.__dict__)
+        logger.debug('BuildCache: {0!s}'.format(self.__dict__))
 
     def build_location(self, s):
         if 'nightly' in s:
@@ -529,14 +525,14 @@ class BuildCache(object):
     def find_latest_builds(self, build_location_name='nightly'):
         build_location = self.build_location(build_location_name)
         if not build_location:
-            logger.error('unsupported build_location "%s"' % build_location_name)
+            logger.error('unsupported build_location "{0!s}"'.format(build_location_name))
             return []
         return build_location.find_latest_builds()
 
     def find_builds_by_directory(self, directory, build_location_name='nightly'):
         build_location = self.build_location(build_location_name)
         if not build_location:
-            logger.error('unsupported build_location "%s"' % build_location_name)
+            logger.error('unsupported build_location "{0!s}"'.format(build_location_name))
             return []
 
         return build_location.find_builds_by_directory(directory)
@@ -544,7 +540,7 @@ class BuildCache(object):
     def find_builds_by_time(self, start_time, end_time, build_location_name='nightly'):
         build_location = self.build_location(build_location_name)
         if not build_location:
-            logger.error('unsupported build_location "%s"' % build_location_name)
+            logger.error('unsupported build_location "{0!s}"'.format(build_location_name))
             return []
 
         return build_location.find_builds_by_time(start_time, end_time)
@@ -553,7 +549,7 @@ class BuildCache(object):
                                 build_location_name='nightly'):
         build_location = self.build_location(build_location_name)
         if not build_location:
-            logger.error('unsupported build_location "%s"' % build_location_name)
+            logger.error('unsupported build_location "{0!s}"'.format(build_location_name))
             return []
 
         return build_location.find_builds_by_revision(first_revision, last_revision)
@@ -580,15 +576,15 @@ class BuildCache(object):
             tests_path = os.path.join(self.override_build_dir, 'tests')
             if enable_unittests and not os.path.exists(tests_path):
                 raise BuildCacheException(
-                    'Override Build Directory %s does not contain a tests directory.' %
-                    self.override_build_dir)
+                    'Override Build Directory {0!s} does not contain a tests directory.'.format(
+                    self.override_build_dir))
             if test_package_names:
                 test_packages_json_path = os.path.join(self.override_build_dir,
                                                        'test_packages.json')
                 if not os.path.exists(test_packages_json_path):
                     raise BuildCacheException(
-                        'Override Build Directory %s does not contain a test_packages.json file.' %
-                        self.override_build_dir)
+                        'Override Build Directory {0!s} does not contain a test_packages.json file.'.format(
+                        self.override_build_dir))
                 saved_test_packages = json.loads(file(test_packages_json_path).read())
                 missing_packages = []
                 for test_package_name in test_package_names:
@@ -596,8 +592,7 @@ class BuildCache(object):
                         missing_packages.append(test_package_name)
                 if missing_packages:
                     raise BuildCacheException(
-                        'Override Build Directory %s is missing test packages %s.' %
-                        (self.override_build_dir, missing_packages))
+                        'Override Build Directory {0!s} is missing test packages {1!s}.'.format(self.override_build_dir, missing_packages))
             metadata = self.build_metadata(buildurl, self.override_build_dir)
             if metadata:
                 metadata_json = metadata.to_json()
@@ -623,7 +618,7 @@ class BuildCache(object):
             download_build = (force or not os.path.exists(build_path) or
                               zipfile.ZipFile(build_path).testzip() is not None)
         except (zipfile.BadZipfile, IOError), e:
-            logger.warning('%s checking build: %s. Forcing download.' % (e, buildurl))
+            logger.warning('{0!s} checking build: {1!s}. Forcing download.'.format(e, buildurl))
             download_build = True
         if download_build:
             # retrieve to temporary file then move over, so we don't end
@@ -634,7 +629,7 @@ class BuildCache(object):
                 urllib.urlretrieve(buildurl, tmpf.name)
             except IOError:
                 os.unlink(tmpf.name)
-                err = 'IO Error retrieving build: %s.' % buildurl
+                err = 'IO Error retrieving build: {0!s}.'.format(buildurl)
                 logger.exception(err)
                 return {'success': False, 'error': err}
             shutil.move(tmpf.name, build_path)
@@ -654,13 +649,13 @@ class BuildCache(object):
                 symbols_zipfile.close()
             except IOError, ioerror:
                 if '550 Failed to change directory' in str(ioerror):
-                    logger.info('No symbols found: %s.' % symbols_url)
+                    logger.info('No symbols found: {0!s}.'.format(symbols_url))
                 elif 'No such file or directory' in str(ioerror):
-                    logger.info('No symbols found: %s.' % symbols_url)
+                    logger.info('No symbols found: {0!s}.'.format(symbols_url))
                 else:
-                    logger.exception('IO Error retrieving symbols: %s.' % symbols_url)
+                    logger.exception('IO Error retrieving symbols: {0!s}.'.format(symbols_url))
             except zipfile.BadZipfile:
-                logger.info('Ignoring zipfile.BadZipfile Error retrieving symbols: %s.' % symbols_url)
+                logger.info('Ignoring zipfile.BadZipfile Error retrieving symbols: {0!s}.'.format(symbols_url))
                 try:
                     with open(tmpf.name, 'r') as badzipfile:
                         logger.debug(badzipfile.read())
@@ -685,7 +680,7 @@ class BuildCache(object):
                     urllib.urlretrieve(robocop_url, tmpf.name)
                 except IOError:
                     os.unlink(tmpf.name)
-                    err = 'IO Error retrieving robocop.apk: %s.' % robocop_url
+                    err = 'IO Error retrieving robocop.apk: {0!s}.'.format(robocop_url)
                     logger.exception(err)
                     return {'success': False, 'error': err}
                 shutil.move(tmpf.name, robocop_path)
@@ -699,8 +694,8 @@ class BuildCache(object):
                     urllib.urlretrieve(fennec_ids_url, tmpf.name)
                 except IOError:
                     os.unlink(tmpf.name)
-                    err = 'IO Error retrieving fennec_ids.txt: %s.' % \
-                        fennec_ids_url
+                    err = 'IO Error retrieving fennec_ids.txt: {0!s}.'.format( \
+                        fennec_ids_url)
                     logger.exception(err)
                     return {'success': False, 'error': err}
                 shutil.move(tmpf.name, fennec_ids_path)
@@ -714,9 +709,9 @@ class BuildCache(object):
             # easily eliminate duplicate file names.
             test_package_files = set()
             if test_package_names and test_packages:
-                logger.debug('test_packages: %s' % json.dumps(test_packages))
+                logger.debug('test_packages: {0!s}'.format(json.dumps(test_packages)))
                 for test_package_name in test_package_names:
-                    logger.debug('test_package_name: %s' % test_package_name)
+                    logger.debug('test_package_name: {0!s}'.format(test_package_name))
                     test_package_files.update(set(test_packages[test_package_name]))
             else:
                 # XXX: assumes fixed buildurl-> tests_url mapping
@@ -727,7 +722,7 @@ class BuildCache(object):
                     tests_url = re.sub('.apk$', '.tests.zip', buildurl)
                     test_package_files = set([os.path.basename(tests_url)])
             for test_package_file in test_package_files:
-                logger.debug('test_package_file: %s' % test_package_file)
+                logger.debug('test_package_file: {0!s}'.format(test_package_file))
                 test_package_path = os.path.join(cache_build_dir,
                                                  test_package_file)
                 if not force and os.path.exists(test_package_path):
@@ -739,7 +734,7 @@ class BuildCache(object):
                     urllib.urlretrieve(test_package_url, tmpf.name)
                 except IOError:
                     os.unlink(tmpf.name)
-                    err = 'IO Error retrieving tests: %s.' % test_package_url
+                    err = 'IO Error retrieving tests: {0!s}.'.format(test_package_url)
                     logger.exception(err)
                     return {'success': False, 'error': err}
                 try:
@@ -751,7 +746,7 @@ class BuildCache(object):
                     # downloaded.
                     shutil.move(tmpf.name, test_package_path)
                 except zipfile.BadZipfile:
-                    err = 'Zip file error retrieving tests: %s.' % test_package_url
+                    err = 'Zip file error retrieving tests: {0!s}.'.format(test_package_url)
                     logger.exception(err)
                     return {'success': False, 'error': err}
             if test_packages:
@@ -795,7 +790,7 @@ class BuildCache(object):
         builds.sort(key=lambda x: x[1])
         while len(builds) > self.build_cache_size:
             b = builds.pop(0)[0]
-            logger.info('Expiring %s' % b)
+            logger.info('Expiring {0!s}'.format(b))
             shutil.rmtree(os.path.join(self.cache_dir, b))
 
     def build_metadata(self, build_url, build_dir):
@@ -818,7 +813,7 @@ class BuildCache(object):
         except zipfile.BadZipfile:
             # we should have already tried to redownload bad zips, so treat
             # this as fatal.
-            logger.exception('%s is a bad apk; aborting job.' % build_path)
+            logger.exception('{0!s} is a bad apk; aborting job.'.format(build_path))
             shutil.rmtree(tmpdir)
             return None
         with open(os.path.join(tmpdir, 'package-name.txt')) as package_file:
@@ -848,15 +843,14 @@ class BuildCache(object):
                 tree = temp_tree
                 break
         if not tree:
-            raise BuildCacheException('build %s contains an unknown SourceRepository %s' %
-                                      (apkfile, repo))
+            raise BuildCacheException('build {0!s} contains an unknown SourceRepository {1!s}'.format(apkfile, repo))
 
         build_type = 'debug' if 'debug' in build_url else 'opt'
         metadata = BuildMetadata(url=build_url,
                                  dir=build_dir,
                                  tree=tree,
                                  id=buildid,
-                                 revision='%srev/%s' % (repo_urls[tree], rev),
+                                 revision='{0!s}rev/{1!s}'.format(repo_urls[tree], rev),
                                  app_name=procname,
                                  version=ver,
                                  build_type=build_type,
@@ -904,9 +898,9 @@ class BuildMetadata(object):
             self.revision_hash = utils.get_treeherder_revision_hash(
                 treeherder_url, tree, changeset)
             if not self.revision_hash:
-                logger.warning('Failed to get the revision_hash for %s' %
-                               self.revision)
-        logger.debug('BuildMetadata: %s' % self.__dict__)
+                logger.warning('Failed to get the revision_hash for {0!s}'.format(
+                               self.revision))
+        logger.debug('BuildMetadata: {0!s}'.format(self.__dict__))
 
     @property
     def date(self):
@@ -919,7 +913,7 @@ class BuildMetadata(object):
         d = self.__dict__.copy()
         d['date'] = self.date
         del d['_date']
-        return '%s' % d
+        return '{0!s}'.format(d)
 
     def to_json(self):
         return {

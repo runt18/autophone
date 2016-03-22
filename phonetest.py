@@ -59,7 +59,7 @@ class Logcat(object):
         else:
             logcat_datestr = '00-00 00:00:00.000'
 
-        self.logger.debug('Logcat.get() since %s' % logcat_datestr)
+        self.logger.debug('Logcat.get() since {0!s}'.format(logcat_datestr))
 
         # adb logcat can return lines with bogus dates where the MM-DD
         # is not correct. This in particular has happened on a Samsung
@@ -83,7 +83,7 @@ class Logcat(object):
                     for x in self.phonetest.dm.get_logcat(filter_specs=['*:V'])]
                 break
             except ADBError:
-                self.logger.exception('Attempt %d get logcat' % attempt)
+                self.logger.exception('Attempt {0:d} get logcat'.format(attempt))
                 if attempt == self.phonetest.options.phone_retry_limit:
                     raise
                 sleep(self.phonetest.options.phone_retry_wait)
@@ -96,7 +96,7 @@ class Logcat(object):
 
         for line in raw_logcat:
             try:
-                curr_line_date = datetime.datetime.strptime('%4d-%s' % (
+                curr_line_date = datetime.datetime.strptime('{0:4d}-{1!s}'.format(
                     curr_year, line[:18]), '%Y-%m-%d %H:%M:%S.%f')
             except ValueError:
                 curr_line_date = None
@@ -111,9 +111,9 @@ class Logcat(object):
                     new_current_logcat = []
                     for x in current_logcat:
                         if x < prev_line_datestr:
-                            self.logger.debug('Logcat.get(): Discarding future line: %s' % x)
+                            self.logger.debug('Logcat.get(): Discarding future line: {0!s}'.format(x))
                         else:
-                            self.logger.debug('Logcat.get(): keeping line: %s' % x)
+                            self.logger.debug('Logcat.get(): keeping line: {0!s}'.format(x))
                             new_current_logcat.append(x)
                     current_logcat = new_current_logcat
                 elif delta >= hour:
@@ -124,9 +124,9 @@ class Logcat(object):
                     new_current_logcat = []
                     for x in current_logcat:
                         if x > prev_line_datestr:
-                            self.logger.debug('Logcat.get(): Discarding past line: %s' % x)
+                            self.logger.debug('Logcat.get(): Discarding past line: {0!s}'.format(x))
                         else:
-                            self.logger.debug('Logcat.get(): keeping line: %s' % x)
+                            self.logger.debug('Logcat.get(): keeping line: {0!s}'.format(x))
                             new_current_logcat.append(x)
                     current_logcat = new_current_logcat
             # Keep the messages which are on or after the last accumulated
@@ -192,7 +192,7 @@ class PhoneTest(object):
 
     @classmethod
     def lookup(cls, phoneid, config_file, chunk):
-        key = '%s:%s:%s' % (phoneid, config_file, chunk)
+        key = '{0!s}:{1!s}:{2!s}'.format(phoneid, config_file, chunk)
         if key in PhoneTest.instances:
             return PhoneTest.instances[key]
         return None
@@ -277,7 +277,7 @@ class PhoneTest(object):
 
             matches.append(test)
 
-        logger.debug('PhoneTest.match = %s' % matches)
+        logger.debug('PhoneTest.match = {0!s}'.format(matches))
 
         return matches
 
@@ -319,7 +319,7 @@ class PhoneTest(object):
         self.test_logfilehandler = None
         self._base_device_path = ''
         if self.dm:
-            self.profile_path = '%s/profile' % self.base_device_path
+            self.profile_path = '{0!s}/profile'.format(self.base_device_path)
         else:
             self.profile_path = '/data/local/tests/autophone/profile'
         self.repos = repos
@@ -342,7 +342,7 @@ class PhoneTest(object):
         self.start_timestamp = None
         self.end_timestamp = None
         self.logcat = Logcat(self, self.loggerdeco)
-        self.loggerdeco.debug('PhoneTest: %s, cfg sections: %s' % (self.__dict__, self.cfg.sections()))
+        self.loggerdeco.debug('PhoneTest: {0!s}, cfg sections: {1!s}'.format(self.__dict__, self.cfg.sections()))
         if not self.cfg.sections():
             self.loggerdeco.warning('Test configuration not found. '
                                     'Will use defaults.')
@@ -412,7 +412,7 @@ class PhoneTest(object):
         self.loggerdeco.info('PhoneTest: Connected.')
 
     def __str__(self):
-        return '%s(%s, config_file=%s, chunk=%s)' % (type(self).__name__,
+        return '{0!s}({1!s}, config_file={2!s}, chunk={3!s})'.format(type(self).__name__,
                                                      self.phone,
                                                      self.config_file,
                                                      self.chunk)
@@ -421,12 +421,12 @@ class PhoneTest(object):
         return self.__str__()
 
     def _add_instance(self, phoneid, config_file, chunk):
-        key = '%s:%s:%s' % (phoneid, config_file, chunk)
-        assert key not in PhoneTest.instances, 'Duplicate PhoneTest %s' % key
+        key = '{0!s}:{1!s}:{2!s}'.format(phoneid, config_file, chunk)
+        assert key not in PhoneTest.instances, 'Duplicate PhoneTest {0!s}'.format(key)
         PhoneTest.instances[key] = self
 
     def remove(self):
-        key = '%s:%s:%s' % (self.phone.id, self.config_file, self.chunk)
+        key = '{0!s}:{1!s}:{2!s}'.format(self.phone.id, self.config_file, self.chunk)
         if key in PhoneTest.instances:
             del PhoneTest.instances[key]
 
@@ -606,11 +606,11 @@ class PhoneTest(object):
 
     @property
     def name_suffix(self):
-        return  '-%s' % self.chunk if self.chunks > 1 else ''
+        return  '-{0!s}'.format(self.chunk) if self.chunks > 1 else ''
 
     @property
     def name(self):
-        return 'autophone-%s%s' % (self.__class__.__name__, self.name_suffix)
+        return 'autophone-{0!s}{1!s}'.format(self.__class__.__name__, self.name_suffix)
 
     @property
     def base_device_path(self):
@@ -620,7 +620,7 @@ class PhoneTest(object):
         e = None
         for attempt in range(1, self.options.phone_retry_limit+1):
             self._base_device_path = self.dm.test_root + '/autophone'
-            self.loggerdeco.debug('Attempt %d creating base device path %s' % (
+            self.loggerdeco.debug('Attempt {0:d} creating base device path {1!s}'.format(
                 attempt, self._base_device_path))
             try:
                 if not self.dm.is_dir(self._base_device_path, root=True):
@@ -637,7 +637,7 @@ class PhoneTest(object):
         if not success:
             raise e
 
-        self.loggerdeco.debug('base_device_path is %s' % self._base_device_path)
+        self.loggerdeco.debug('base_device_path is {0!s}'.format(self._base_device_path))
 
         return self._base_device_path
 
@@ -668,7 +668,7 @@ class PhoneTest(object):
         if not self._job_symbol:
             self._job_symbol = self.cfg.get('treeherder', 'job_symbol')
             if self.chunks > 1:
-                self._job_symbol = "%s%s" %(self._job_symbol, self.chunk)
+                self._job_symbol = "{0!s}{1!s}".format(self._job_symbol, self.chunk)
         return self._job_symbol
 
     @property
@@ -706,7 +706,7 @@ class PhoneTest(object):
         self.job_guid = utils.generate_guid()
 
     def get_buildername(self, tree):
-        return "%s %s opt %s" % (
+        return "{0!s} {1!s} opt {2!s}".format(
             self.phone.platform, tree, self.name)
 
     def handle_test_interrupt(self, reason, test_result):
@@ -747,10 +747,10 @@ class PhoneTest(object):
 
                 self.test_failure(self.name,
                                   error['reason'],
-                                  'application crashed [%s]' % error['signature'],
+                                  'application crashed [{0!s}]'.format(error['signature']),
                                   PhoneTestResult.TESTFAILED)
             else:
-                self.loggerdeco.warning('Unknown error reason: %s' % error['reason'])
+                self.loggerdeco.warning('Unknown error reason: {0!s}'.format(error['reason']))
 
     def create_profile(self, custom_addons=[], custom_prefs=None, root=True):
         # Create, install and initialize the profile to be
@@ -758,7 +758,7 @@ class PhoneTest(object):
 
         temp_addons = ['quitter.xpi']
         temp_addons.extend(custom_addons)
-        addons = ['%s/xpi/%s' % (os.getcwd(), addon) for addon in temp_addons]
+        addons = ['{0!s}/xpi/{1!s}'.format(os.getcwd(), addon) for addon in temp_addons]
 
         # make sure firefox isn't running when we try to
         # install the profile.
@@ -774,7 +774,7 @@ class PhoneTest(object):
 
         success = False
         for attempt in range(1, self.options.phone_retry_limit+1):
-            self.loggerdeco.debug('Attempt %d Initializing profile' % attempt)
+            self.loggerdeco.debug('Attempt {0:d} Initializing profile'.format(attempt))
             self.run_fennec_with_profile(self.build.app_name, self._initialize_url)
 
             if self.wait_for_fennec():
@@ -809,8 +809,8 @@ class PhoneTest(object):
                 self.dm.pkill(self.build.app_name, root=root)
                 break
             except ADBError:
-                self.loggerdeco.exception('Attempt %d to kill fennec failed' %
-                                          kill_attempt)
+                self.loggerdeco.exception('Attempt {0:d} to kill fennec failed'.format(
+                                          kill_attempt))
                 if kill_attempt == max_killattempts:
                     raise
                 sleep(kill_wait_time)
@@ -819,7 +819,7 @@ class PhoneTest(object):
     def install_local_pages(self):
         success = False
         for attempt in range(1, self.options.phone_retry_limit+1):
-            self.loggerdeco.debug('Attempt %d Installing local pages' % attempt)
+            self.loggerdeco.debug('Attempt {0:d} Installing local pages'.format(attempt))
             try:
                 self.dm.rm(self._paths['dest'], recursive=True, force=True, root=True)
                 self.dm.mkdir(self._paths['dest'], parents=True, root=True)
@@ -833,7 +833,7 @@ class PhoneTest(object):
                 success = True
                 break
             except ADBError:
-                self.loggerdeco.exception('Attempt %d Installing local pages' % attempt)
+                self.loggerdeco.exception('Attempt {0:d} Installing local pages'.format(attempt))
                 sleep(self.options.phone_retry_wait)
 
         if not success:
@@ -846,7 +846,7 @@ class PhoneTest(object):
             try:
                 return self.dm.process_exist(appname)
             except ADBError:
-                self.loggerdeco.exception('Attempt %d is fennec running' % attempt)
+                self.loggerdeco.exception('Attempt {0:d} is fennec running'.format(attempt))
                 if attempt == self.options.phone_retry_limit:
                     raise
                 sleep(self.options.phone_retry_wait)
@@ -919,7 +919,7 @@ class PhoneTest(object):
         self.test_result = PhoneTestResult()
         if not self.worker_subprocess.is_disabled():
             self.update_status(phone_status=PhoneStatus.WORKING,
-                               message='Setting up %s' % self.name)
+                               message='Setting up {0!s}'.format(self.name))
 
     def run_job(self):
         raise NotImplementedError
@@ -927,7 +927,7 @@ class PhoneTest(object):
     def teardown_job(self):
         self.loggerdeco.debug('PhoneTest.teardown_job')
         self.stop_time = datetime.datetime.now()
-        self.loggerdeco.info('Test %s elapsed time: %s' % (
+        self.loggerdeco.info('Test {0!s} elapsed time: {1!s}'.format(
             self.name, self.stop_time - self.start_time))
         try:
             if self.worker_subprocess.is_ok():
@@ -938,7 +938,7 @@ class PhoneTest(object):
             self.loggerdeco.exception('Exception during crash processing')
             self.test_failure(
                 self.name, 'TEST-UNEXPECTED-FAIL',
-                'Exception %s during crash processing' % e,
+                'Exception {0!s} during crash processing'.format(e),
                 PhoneTestResult.EXCEPTION)
         logger = logging.getLogger('phonetest')
         if (logger.getEffectiveLevel() == logging.DEBUG and self.unittest_logpath and
@@ -1018,7 +1018,7 @@ class PhoneTest(object):
         success = False
         for attempt in range(1, self.options.phone_retry_limit+1):
             try:
-                self.loggerdeco.debug('Attempt %d installing profile' % attempt)
+                self.loggerdeco.debug('Attempt {0:d} installing profile'.format(attempt))
                 if self.dm.exists(self.profile_path, root=root):
                     # If the profile already exists, chmod it to make sure
                     # we have permission to delete it.
@@ -1039,13 +1039,12 @@ class PhoneTest(object):
                 sleep(self.options.phone_retry_wait)
 
         if not success:
-            self.loggerdeco.error('Failure installing profile to %s' % self.profile_path)
+            self.loggerdeco.error('Failure installing profile to {0!s}'.format(self.profile_path))
 
         return success
 
     def run_fennec_with_profile(self, appname, url, extra_args=[]):
-        self.loggerdeco.debug('run_fennec_with_profile: %s %s %s' %
-                              (appname, url, extra_args))
+        self.loggerdeco.debug('run_fennec_with_profile: {0!s} {1!s} {2!s}'.format(appname, url, extra_args))
         local_extra_args = ['-profile', self.profile_path]
         local_extra_args.extend(extra_args)
 
@@ -1082,7 +1081,7 @@ class PhoneTest(object):
             self.loggerdeco.info('fennec crashed')
             return True
         if self.dm.exists(
-                '/data/data/%s/files/mozilla/Crash\\ Reports/pending/*.dmp' % self.build.app_name,
+                '/data/data/{0!s}/files/mozilla/Crash\\ Reports/pending/*.dmp'.format(self.build.app_name),
                 root=root):
             self.loggerdeco.info('fennec crashed, but minidumps are in Pending Crash Reports.')
             return True
@@ -1109,7 +1108,7 @@ class PhoneTestResult(object):
         self.todo = 0
 
     def __str__(self):
-        return "PhoneTestResult: passes: %s, failures: %s" % (self.passes, self.failures)
+        return "PhoneTestResult: passes: {0!s}, failures: {1!s}".format(self.passes, self.failures)
 
     @property
     def passed(self):

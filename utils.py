@@ -31,7 +31,7 @@ def get_remote_text(url):
     try:
         scheme = urlparse.urlparse(url).scheme
         if not scheme:
-            raise Exception('required scheme missing in url %s' % url)
+            raise Exception('required scheme missing in url {0!s}'.format(url))
 
         if scheme.startswith('file'):
             conn = urllib2.urlopen(url)
@@ -46,19 +46,19 @@ def get_remote_text(url):
                 content = conn.read()
                 return content
             if code != 503:
-                logger.warning("Unable to open url %s : %s" % (
+                logger.warning("Unable to open url {0!s} : {1!s}".format(
                     url, httplib.responses[code]))
                 return None
             # Server is too busy. Wait and try again.
             # See https://bugzilla.mozilla.org/show_bug.cgi?id=1146983#c10
-            logger.warning("HTTP 503 Server Too Busy: url %s" % url)
+            logger.warning("HTTP 503 Server Too Busy: url {0!s}".format(url))
             conn.close()
             time.sleep(60 + random.randrange(0,30,1))
     except urllib2.HTTPError, e:
-        logger.warning('%s Unable to open %s' % (e, url))
+        logger.warning('{0!s} Unable to open {1!s}'.format(e, url))
         return None
     except Exception:
-        logger.exception('Unable to open %s' % url)
+        logger.exception('Unable to open {0!s}'.format(url))
         return None
     finally:
         if conn:
@@ -137,7 +137,7 @@ def get_treeherder_revision_hash(treeherder_url, repo, revision):
     if not treeherder_url or not repo or not revision:
         return None
 
-    result_set_url = '%s/api/project/%s/resultset/?revision=%s' % (
+    result_set_url = '{0!s}/api/project/{1!s}/resultset/?revision={2!s}'.format(
         treeherder_url, repo, revision[:12])
     result_set = get_remote_json(result_set_url)
     if not result_set:

@@ -26,7 +26,7 @@ class LogDecorator(object):
         try:
             # If the message is actualy an object, such as DMError,
             # convert it to a string.
-            message = "%s" % message
+            message = "{0!s}".format(message)
             if isinstance(message, unicode):
                 extradict['message'] = message
             else:

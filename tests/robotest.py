@@ -44,8 +44,7 @@ class RoboTest(PerfTest):
                 continue
 
             for test_name in self._tests:
-                test_url = ('am instrument -w -e deviceroot %s %s' %
-                            (self._paths['dest'],
+                test_url = ('am instrument -w -e deviceroot {0!s} {1!s}'.format(self._paths['dest'],
                              self.cfg.get('settings', 'tcheck_args')))
 
                 self.loggerdeco.debug(
@@ -53,23 +52,23 @@ class RoboTest(PerfTest):
                     'test: %s, adb args: %s' %
                     (test_location, test_name, test_path,
                      self._tests[test_name], test_url))
-                self._test_args["%s-%s" % (test_location, test_name)] = test_url
+                self._test_args["{0!s}-{1!s}".format(test_location, test_name)] = test_url
 
     @property
     def name(self):
-        return 'autophone-talos%s' % self.name_suffix
+        return 'autophone-talos{0!s}'.format(self.name_suffix)
 
     def create_profile(self):
         retVal = PerfTest.create_profile(self)
 
         config_file = os.path.join(self.build.dir, 'robotium.config')
         with open(config_file, 'w') as fHandle:
-            fHandle.write("profile=%s\n" % self.profile_path)
+            fHandle.write("profile={0!s}\n".format(self.profile_path))
 
             remoteLog = self._paths['dest'] + "/tcheck3.log"
-            fHandle.write("logfile=%s\n" % remoteLog)
-            fHandle.write("host=%s\n" % self.options.webserver_url)
-            fHandle.write("rawhost=%s\n" % self.options.webserver_url)
+            fHandle.write("logfile={0!s}\n".format(remoteLog))
+            fHandle.write("host={0!s}\n".format(self.options.webserver_url))
+            fHandle.write("rawhost={0!s}\n".format(self.options.webserver_url))
             envstr = ""
             delim = ""
             # This is not foolproof and the ideal solution would be to have
@@ -82,9 +81,9 @@ class RoboTest(PerfTest):
 #      network access
 #                        'MOZ_DISABLE_NONLOCAL_CONNECTIONS': 1}
             for item in env_vars:
-                envstr += "%s%s=%s" % (delim, item, env_vars[item])
+                envstr += "{0!s}{1!s}={2!s}".format(delim, item, env_vars[item])
                 delim = ","
-            fHandle.write("envvars=%s\n" % envstr)
+            fHandle.write("envvars={0!s}\n".format(envstr))
 
         self.dm.push(config_file, self._paths['dest'])
         return retVal
@@ -118,8 +117,7 @@ class RoboTest(PerfTest):
                            'testname': testname},
                 extraformat='%(phoneid)s|%(buildid)s|%(testname)s|%(message)s')
             self.dm._logger = self.loggerdeco
-            self.loggerdeco.info('Running test (%d/%d) for %d iterations' %
-                                 (testnum, testcount, self._iterations))
+            self.loggerdeco.info('Running test ({0:d}/{1:d}) for {2:d} iterations'.format(testnum, testcount, self._iterations))
 
             command = None
 
@@ -170,8 +168,7 @@ class RoboTest(PerfTest):
                         'No measurements for test %s after '
                         '%d iterations' % (testname, self._iterations))
                     self.worker_subprocess.mailer.send(
-                        '%s %s failed for Build %s %s on %s %s' %
-                        (self.__class__.__name__,
+                        '{0!s} {1!s} failed for Build {2!s} {3!s} on {4!s} {5!s}'.format(self.__class__.__name__,
                          testname,
                          self.build.tree,
                          self.build.id,
@@ -192,7 +189,7 @@ class RoboTest(PerfTest):
                          self.build.id,
                          self.build.revision))
                     self.test_failure(self.name, 'TEST_UNEXPECTED_FAIL',
-                                      'No measurements detected. %s != %s' % (
+                                      'No measurements detected. {0!s} != {1!s}'.format(
                                           len(measurements), self._iterations),
                                       PhoneTestResult.BUSTED)
                 else:
@@ -201,7 +198,7 @@ class RoboTest(PerfTest):
                         'Failed to get enough measurements for test %s after '
                         '%d iterations' % (testname, self._iterations))
                     self.test_failure(self.name, 'TEST_UNEXPECTED_FAIL',
-                                      'Not enough measurements collected %s != %s' % (
+                                      'Not enough measurements collected {0!s} != {1!s}'.format(
                                           len(measurements), self._iterations),
                                       PhoneTestResult.TESTFAILED)
 
@@ -265,6 +262,6 @@ class RoboTest(PerfTest):
         if results is None:
             self.loggerdeco.info('Unable to find pageload metric')
 
-        self.loggerdeco.info("returning from logcat analyze with: %s" %
-                             results)
+        self.loggerdeco.info("returning from logcat analyze with: {0!s}".format(
+                             results))
         return results

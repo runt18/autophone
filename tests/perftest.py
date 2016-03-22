@@ -63,7 +63,7 @@ class PerfTest(PhoneTest):
         self.perfherder_artifact = None
         if options.phonedash_url:
             self._resulturl = urlparse.urljoin(options.phonedash_url, '/api/s1s2/')
-            self.loggerdeco.debug('PerfTest._resulturl: %s' % self._resulturl)
+            self.loggerdeco.debug('PerfTest._resulturl: {0!s}'.format(self._resulturl))
 
         # [signature]
         self._signer = None
@@ -96,8 +96,8 @@ class PerfTest(PhoneTest):
         self.perfherder_artifact = None
 
         if not self._resulturl:
-            self._resultfile = open('autophone-results-%s.csv' %
-                                    self.phone.id, 'ab')
+            self._resultfile = open('autophone-results-{0!s}.csv'.format(
+                                    self.phone.id), 'ab')
             self._resultfile.seek(0, 2)
             self._resultwriter = csv.writer(self._resultfile)
             if self._resultfile.tell() == 0:
@@ -135,8 +135,8 @@ class PerfTest(PhoneTest):
     def result_server(self):
         if self._resulturl and not self._result_server:
             parts = urlparse.urlparse(self._resulturl)
-            self._result_server = '%s://%s' % (parts.scheme, parts.netloc)
-            self.loggerdeco.debug('PerfTest._result_server: %s' % self._result_server)
+            self._result_server = '{0!s}://{1!s}'.format(parts.scheme, parts.netloc)
+            self.loggerdeco.debug('PerfTest._result_server: {0!s}'.format(self._result_server))
         return self._result_server
 
     @property
@@ -164,7 +164,7 @@ class PerfTest(PhoneTest):
                    starttime, tstrt, tstop,
                    tstrt-starttime, tstop-starttime,
                    tstop - tstrt, rejected))
-        self.loggerdeco.info('RESULTS: %s' % msg)
+        self.loggerdeco.info('RESULTS: {0!s}'.format(msg))
 
         if self._resulturl:
             self.publish_results(starttime=starttime, tstrt=tstrt, tstop=tstop,
@@ -295,11 +295,11 @@ class PerfTest(PhoneTest):
             'product': self.build.app_name
         }
 
-        self.loggerdeco.debug('check_results for: %s' % query)
+        self.loggerdeco.debug('check_results for: {0!s}'.format(query))
 
         url = self._resulturl + 'check/?' + urllib.urlencode(query)
         response = utils.get_remote_json(url)
-        self.loggerdeco.debug('check_results: content: %s' % response)
+        self.loggerdeco.debug('check_results: content: {0!s}'.format(response))
         if response:
             return response['result']
 
@@ -337,7 +337,7 @@ class PerfTest(PhoneTest):
         Return None if at least one measurement has no values.
         """
 
-        self.loggerdeco.debug("is_stderr_below_threshold: %s" % dataset)
+        self.loggerdeco.debug("is_stderr_below_threshold: {0!s}".format(dataset))
 
         for cachekey in ('uncached', 'cached'):
             for measurement in measurements:

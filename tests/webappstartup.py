@@ -29,7 +29,7 @@ class WebappStartupTest(PerfTest):
 
     @property
     def name(self):
-        return 'autophone-webapp%s' % self.name_suffix
+        return 'autophone-webapp{0!s}'.format(self.name_suffix)
 
     @property
     def phonedash_url(self):
@@ -49,7 +49,7 @@ class WebappStartupTest(PerfTest):
         # Perform an initial install of the webapp to confirm it
         # can be installed.
         if not self.install_webappstartup():
-            raise Exception('Unable to install %s' % self._paths['webappstartup_apk'])
+            raise Exception('Unable to install {0!s}'.format(self._paths['webappstartup_apk']))
 
     def teardown_job(self):
         # We must tear down the PerfTest before uninstalling
@@ -62,8 +62,8 @@ class WebappStartupTest(PerfTest):
                 # to ensure that the test teardown completes.
                 self.dm.uninstall_app(self.webappstartup_name)
             except:
-                self.loggerdeco.exception('Exception uninstalling %s' %
-                                          self.webappstartup_name)
+                self.loggerdeco.exception('Exception uninstalling {0!s}'.format(
+                                          self.webappstartup_name))
 
     def create_profile(self, custom_addons=[], custom_prefs=None, root=True):
         # Create, install and initialize the profile to be
@@ -71,17 +71,17 @@ class WebappStartupTest(PerfTest):
 
         temp_addons = ['quitter.xpi']
         temp_addons.extend(custom_addons)
-        addons = ['%s/xpi/%s' % (os.getcwd(), addon) for addon in temp_addons]
+        addons = ['{0!s}/xpi/{1!s}'.format(os.getcwd(), addon) for addon in temp_addons]
 
-        self.loggerdeco.debug('create_profile: custom_prefs: %s' % custom_prefs)
+        self.loggerdeco.debug('create_profile: custom_prefs: {0!s}'.format(custom_prefs))
 
         # Start without Fennec or the webapp running.
         self.kill_webappstartup()
 
         # Pull the profiles.ini file when it first exists so we can
         # determine the profile path.
-        app_dir = '/data/data/%s' % self.build.app_name
-        remote_profiles_ini_path = '%s/files/mozilla/profiles.ini' % app_dir
+        app_dir = '/data/data/{0!s}'.format(self.build.app_name)
+        remote_profiles_ini_path = '{0!s}/files/mozilla/profiles.ini'.format(app_dir)
         # Do not use recursive chmod in order not to have to process
         # any unnecessary files or directories.
         path = app_dir
@@ -130,7 +130,7 @@ class WebappStartupTest(PerfTest):
                 try:
                     remote_profile_path = cfg.get(section, 'Path')
                     if cfg.get(section, 'IsRelative') == '1':
-                        self.profile_path = '%s/files/mozilla/%s' % (
+                        self.profile_path = '{0!s}/files/mozilla/{1!s}'.format(
                             app_dir, remote_profile_path)
                     else:
                         self.profile_path = remote_profile_path
@@ -142,13 +142,13 @@ class WebappStartupTest(PerfTest):
             os.unlink(local_profiles_ini_file.name)
 
         if not self.profile_path:
-            self.loggerdeco.warning('create_profile: %s Failed' %
-                                    remote_profiles_ini_path)
+            self.loggerdeco.warning('create_profile: {0!s} Failed'.format(
+                                    remote_profiles_ini_path))
             self.kill_webappstartup()
             return False
 
-        self.loggerdeco.info('create_profile: profile_path: %s' %
-                             self.profile_path)
+        self.loggerdeco.info('create_profile: profile_path: {0!s}'.format(
+                             self.profile_path))
 
         # Sleep for 10 seconds to allow initialization to complete.
         # Other approaches such as checking for changing directory
@@ -174,8 +174,8 @@ class WebappStartupTest(PerfTest):
 
         self.testname = 'webappstartup'
 
-        self.loggerdeco.info('Running test for %d iterations' %
-                             self._iterations)
+        self.loggerdeco.info('Running test for {0:d} iterations'.format(
+                             self._iterations))
 
         # success == False indicates that none of the attempts
         # were successful in getting any measurement. This is
@@ -265,8 +265,7 @@ class WebappStartupTest(PerfTest):
                         dataset,
                         self.stderrp_accept):
                     self.loggerdeco.info(
-                        'Accepted test %s after %d of %d iterations' %
-                        (self.testname, iteration, self._iterations))
+                        'Accepted test {0!s} after {1:d} of {2:d} iterations'.format(self.testname, iteration, self._iterations))
                     break
 
             if command and command['interrupt']:
@@ -281,8 +280,7 @@ class WebappStartupTest(PerfTest):
                                           self.stderrp_attempts,
                                           self._iterations))
                 self.worker_subprocess.mailer.send(
-                    'Webappstartup test failed for Build %s %s on %s %s' %
-                    (self.build.tree, self.build.id, utils.host(), self.phone.id),
+                    'Webappstartup test failed for Build {0!s} {1!s} on {2!s} {3!s}'.format(self.build.tree, self.build.id, utils.host(), self.phone.id),
                     'No measurements were detected for test webappstartup.\n\n'
                     'Job        %s\n'
                     'Host       %s\n'
@@ -310,8 +308,7 @@ class WebappStartupTest(PerfTest):
             else:
                 rejected = True
                 self.loggerdeco.info(
-                    'Rejected test %s after %d/%d iterations' %
-                    (self.testname, iteration, self._iterations))
+                    'Rejected test {0!s} after {1:d}/{2:d} iterations'.format(self.testname, iteration, self._iterations))
 
             self.loggerdeco.debug('publishing results')
 
@@ -330,7 +327,7 @@ class WebappStartupTest(PerfTest):
         return is_test_completed
 
     def kill_webappstartup(self):
-        re_webapp = re.compile(r'%s|%s|%s:%s.Webapp0' % (
+        re_webapp = re.compile(r'{0!s}|{1!s}|{2!s}:{3!s}.Webapp0'.format(
             self.webappstartup_name[:75],
             self.build.app_name,
             self.build.app_name, self.build.app_name))
@@ -338,8 +335,8 @@ class WebappStartupTest(PerfTest):
         procs = self.dm.get_process_list()
         pids = [proc[0] for proc in procs if re_webapp.match(proc[1])]
         if not pids:
-            self.loggerdeco.debug('kill_webappstartup: no matching pids: %s' %
-                                  re_webapp.pattern)
+            self.loggerdeco.debug('kill_webappstartup: no matching pids: {0!s}'.format(
+                                  re_webapp.pattern))
             return
 
         self.dm.kill(pids, sig=9, root=True)
@@ -357,14 +354,14 @@ class WebappStartupTest(PerfTest):
         # self.environment is expected to be a dictionary of environment variables:
         # Fennec itself will set them when launched
         for (env_count, (env_key, env_val)) in enumerate(self.environment.iteritems()):
-            extras["env" + str(env_count)] = "%s=%s" % (env_key, env_val)
+            extras["env" + str(env_count)] = "{0!s}={1!s}".format(env_key, env_val)
 
         # Additional command line arguments that fennec will read and use.
         extra_args = []
         if extra_args:
             extras['args'] = " ".join(extra_args)
 
-        self.loggerdeco.debug('run_webappstartup: %s' % self.build.app_name)
+        self.loggerdeco.debug('run_webappstartup: {0!s}'.format(self.build.app_name))
         try:
             # need to kill the fennec process and the webapp process
             # org.mozilla.fennec:org.mozilla.fennec.Webapp0'
@@ -426,8 +423,8 @@ class WebappStartupTest(PerfTest):
                 self.kill_webappstartup()
                 break
             except ADBError:
-                self.loggerdeco.exception('Attempt %d to kill fennec failed' %
-                                          kill_attempt)
+                self.loggerdeco.exception('Attempt {0:d} to kill fennec failed'.format(
+                                          kill_attempt))
                 if kill_attempt == max_killattempts:
                     raise
                 sleep(kill_wait_time)
@@ -441,13 +438,13 @@ class WebappStartupTest(PerfTest):
             re_webappname = re.compile(r'package:(.*)')
             match = re_webappname.match(output)
             if not match:
-                self.loggerdeco.warning('Could not find webappstartup package in %s' % output)
+                self.loggerdeco.warning('Could not find webappstartup package in {0!s}'.format(output))
             self.webappstartup_name = match.group(1)
 
     def install_webappstartup(self):
         success = False
         for attempt in range(1, self.options.phone_retry_limit+1):
-            self.loggerdeco.debug('Attempt %d Installing webappstartup' % attempt)
+            self.loggerdeco.debug('Attempt {0:d} Installing webappstartup'.format(attempt))
             try:
                 if self.webappstartup_name and self.dm.is_app_installed(self.webappstartup_name):
                     self.dm.uninstall_app(self.webappstartup_name)
@@ -455,7 +452,7 @@ class WebappStartupTest(PerfTest):
                 success = True
                 break
             except ADBError:
-                self.loggerdeco.exception('Attempt %d Installing webappstartup' % attempt)
+                self.loggerdeco.exception('Attempt {0:d} Installing webappstartup'.format(attempt))
                 sleep(self.options.phone_retry_wait)
 
         if not success:
@@ -469,10 +466,10 @@ class WebappStartupTest(PerfTest):
             try:
                 return (self.dm.process_exist(self.build.app_name) or
                         self.dm.process_exist(self.webappstartup_name) or
-                        self.dm.process_exist('%s:%s.Webapp0' % (
+                        self.dm.process_exist('{0!s}:{1!s}.Webapp0'.format(
                             self.build.app_name, self.build.app_name)))
             except ADBError:
-                self.loggerdeco.exception('Attempt %d is fennec running' % attempt)
+                self.loggerdeco.exception('Attempt {0:d} is fennec running'.format(attempt))
                 if attempt == self.options.phone_retry_limit:
                     raise
                 sleep(self.options.phone_retry_wait)
@@ -483,17 +480,15 @@ class WebappStartupTest(PerfTest):
         logcat_prefix = '(\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})'
         chrome_prefix = '..GeckoBrowser.*: zerdatime .* - browser chrome startup finished.'
         webapp_prefix = '..GeckoConsole.*WEBAPP STARTUP COMPLETE'
-        re_base_time = re.compile('%s' % logcat_prefix)
-        re_gecko_time = re.compile('%s .*([Gg]ecko)' % logcat_prefix)
+        re_base_time = re.compile('{0!s}'.format(logcat_prefix))
+        re_gecko_time = re.compile('{0!s} .*([Gg]ecko)'.format(logcat_prefix))
         re_start_time = re.compile(
             '%s .*('
             'Start proc .*%s.* for activity %s|'
             'Fennec application start)' % (
                 logcat_prefix, self.webappstartup_name, self.webappstartup_name))
-        re_chrome_time = re.compile('%s %s' %
-                                    (logcat_prefix, chrome_prefix))
-        re_startup_time = re.compile('%s %s' %
-                                     (logcat_prefix, webapp_prefix))
+        re_chrome_time = re.compile('{0!s} {1!s}'.format(logcat_prefix, chrome_prefix))
+        re_startup_time = re.compile('{0!s} {1!s}'.format(logcat_prefix, webapp_prefix))
 
         base_time = 0
         start_time = 0
@@ -510,12 +505,12 @@ class WebappStartupTest(PerfTest):
         while attempt <= max_attempts and startup_time == 0:
             buf = self.logcat.get()
             for line in buf:
-                self.loggerdeco.debug('analyze_logcat: %s' % line)
+                self.loggerdeco.debug('analyze_logcat: {0!s}'.format(line))
                 match = re_base_time.match(line)
                 if match and not base_time:
                     base_time = match.group(1)
-                    self.loggerdeco.info('analyze_logcat: base_time: %s' %
-                                         base_time)
+                    self.loggerdeco.info('analyze_logcat: base_time: {0!s}'.format(
+                                         base_time))
                 # We want the Fennec application start message, or the
                 # Start proc message or the first gecko related
                 # message in order to determine the start_time which
@@ -528,8 +523,7 @@ class WebappStartupTest(PerfTest):
                         start_time = match.group(1)
                         start_time_reason = match.group(2)
                         self.loggerdeco.info(
-                            'analyze_logcat: new start_time: %s %s' %
-                            (start_time, start_time_reason))
+                            'analyze_logcat: new start_time: {0!s} {1!s}'.format(start_time, start_time_reason))
                 match = re_start_time.match(line)
                 if match:
                     group1 = match.group(1)
@@ -538,8 +532,7 @@ class WebappStartupTest(PerfTest):
                         start_time = group1
                         start_time_reason = group2
                         self.loggerdeco.info(
-                            'analyze_logcat: new start_time: %s %s' %
-                            (start_time, start_time_reason))
+                            'analyze_logcat: new start_time: {0!s} {1!s}'.format(start_time, start_time_reason))
                     elif (fennec_start in group2 and
                           fennec_start not in start_time_reason):
                         # Webapps emit two fennec_start messages. Only
@@ -547,19 +540,16 @@ class WebappStartupTest(PerfTest):
                         start_time = group1
                         start_time_reason = group2
                         self.loggerdeco.info(
-                            'analyze_logcat: updated start_time: %s %s' %
-                            (start_time, start_time_reason))
+                            'analyze_logcat: updated start_time: {0!s} {1!s}'.format(start_time, start_time_reason))
                     elif (fennec_start not in start_time_reason and
                           group2.startswith('Start proc')):
                         start_time = group1
                         start_time_reason = group2
                         self.loggerdeco.info(
-                            'analyze_logcat: updated start_time: %s %s' %
-                            (start_time, start_time_reason))
+                            'analyze_logcat: updated start_time: {0!s} {1!s}'.format(start_time, start_time_reason))
                     else:
                         self.loggerdeco.info(
-                            'analyze_logcat: ignoring start_time: %s %s' %
-                            (group1, group2))
+                            'analyze_logcat: ignoring start_time: {0!s} {1!s}'.format(group1, group2))
                     continue
                 # We want the first chrome time and WEBAPP STARTUP
                 # COMPLETE after the start_time.
@@ -571,14 +561,14 @@ class WebappStartupTest(PerfTest):
                             'missing startup_time. Resetting '
                             'throbber_start_time.' % chrome_time)
                     chrome_time = match.group(1)
-                    self.loggerdeco.info('analyze_logcat: chrome_time: %s' %
-                                         chrome_time)
+                    self.loggerdeco.info('analyze_logcat: chrome_time: {0!s}'.format(
+                                         chrome_time))
                     continue
                 match = re_startup_time.match(line)
                 if match and not startup_time:
                     startup_time = match.group(1)
-                    self.loggerdeco.info('analyze_logcat: startup_time: %s' %
-                                         startup_time)
+                    self.loggerdeco.info('analyze_logcat: startup_time: {0!s}'.format(
+                                         startup_time))
                     continue
                 if start_time and startup_time:
                     break
@@ -602,7 +592,7 @@ class WebappStartupTest(PerfTest):
         # year.
 
         if base_time and start_time and chrome_time and startup_time:
-            parse = lambda y, t: datetime.datetime.strptime('%4d-%s' % (y, t), '%Y-%m-%d %H:%M:%S.%f')
+            parse = lambda y, t: datetime.datetime.strptime('{0:4d}-{1!s}'.format(y, t), '%Y-%m-%d %H:%M:%S.%f')
             year = datetime.datetime.now().year
             base_time = parse(year, base_time)
             start_time = parse(year, start_time)

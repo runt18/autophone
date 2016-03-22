@@ -195,7 +195,7 @@ class ADBAndroid(ADBDevice):
             try:
                 state = self.get_state(timeout=timeout)
                 if state != 'device':
-                    failure = "Device state: %s" % state
+                    failure = "Device state: {0!s}".format(state)
                     success = False
                 else:
                     if (self.selinux and
@@ -210,7 +210,7 @@ class ADBAndroid(ADBDevice):
                     # Invoke the pm list commands to see if it is up and
                     # running.
                     for pm_list_cmd in pm_list_commands:
-                        data = self.shell_output("pm list %s" % pm_list_cmd,
+                        data = self.shell_output("pm list {0!s}".format(pm_list_cmd),
                                                  timeout=timeout)
                         if pm_error_string in data:
                             failure = data
@@ -221,7 +221,7 @@ class ADBAndroid(ADBDevice):
                 failure = e.message
 
             if not success:
-                self._logger.debug('Attempt %s of %s device not ready: %s' % (
+                self._logger.debug('Attempt {0!s} of {1!s} device not ready: {2!s}'.format(
                     attempt+1, self._device_ready_retry_attempts,
                     failure))
                 time.sleep(self._device_ready_retry_wait)
@@ -250,7 +250,7 @@ class ADBAndroid(ADBDevice):
             # Any other exitcode is a real error.
             if 'exitcode: 137' not in e.message:
                 raise
-            self._logger.warning('Unable to set power stayon true: %s' % e)
+            self._logger.warning('Unable to set power stayon true: {0!s}'.format(e))
 
     # Application management methods
 
@@ -274,8 +274,7 @@ class ADBAndroid(ADBDevice):
         cmd.append(apk_path)
         data = self.command_output(cmd, timeout=timeout)
         if data.find('Success') == -1:
-            raise ADBError("install failed for %s. Got: %s" %
-                           (apk_path, data))
+            raise ADBError("install failed for {0!s}. Got: {1!s}".format(apk_path, data))
 
     def is_app_installed(self, app_name, timeout=None):
         """Returns True if an app is installed on the device.
@@ -292,7 +291,7 @@ class ADBAndroid(ADBDevice):
                  * ADBError
         """
         pm_error_string = 'Error: Could not access the Package Manager'
-        data = self.shell_output("pm list package %s" % app_name, timeout=timeout)
+        data = self.shell_output("pm list package {0!s}".format(app_name), timeout=timeout)
         if pm_error_string in data:
             raise ADBError(pm_error_string)
         if app_name not in data:
@@ -334,7 +333,7 @@ class ADBAndroid(ADBDevice):
                            "at once")
 
         acmd = [ "am", "start" ] + \
-            ["-W" if wait else '', "-n", "%s/%s" % (app_name, activity_name)]
+            ["-W" if wait else '', "-n", "{0!s}/{1!s}".format(app_name, activity_name)]
 
         if intent:
             acmd.extend(["-a", intent])
@@ -426,7 +425,7 @@ class ADBAndroid(ADBDevice):
                  * ADBError
         """
         if self.version >= version_codes.HONEYCOMB:
-            self.shell_output("am force-stop %s" % app_name,
+            self.shell_output("am force-stop {0!s}".format(app_name),
                               timeout=timeout, root=root)
         else:
             num_tries = 0
@@ -465,8 +464,8 @@ class ADBAndroid(ADBDevice):
         if self.is_app_installed(app_name, timeout=timeout):
             data = self.command_output(["uninstall", app_name], timeout=timeout)
             if data.find('Success') == -1:
-                self._logger.debug('uninstall_app failed: %s' % data)
-                raise ADBError("uninstall failed for %s. Got: %s" % (app_name, data))
+                self._logger.debug('uninstall_app failed: {0!s}'.format(data))
+                raise ADBError("uninstall failed for {0!s}. Got: {1!s}".format(app_name, data))
             if reboot:
                 self.reboot(timeout=timeout)
 

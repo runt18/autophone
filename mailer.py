@@ -80,7 +80,7 @@ class Mailer(object):
         try:
             sendemail(from_addr=self.from_address,
                       to_addrs=self.mail_dest,
-                      subject='%s%s' % (self.subject_prefix, subject),
+                      subject='{0!s}{1!s}'.format(self.subject_prefix, subject),
                       username=self.mail_username,
                       password=self.mail_password,
                       text_data=body,

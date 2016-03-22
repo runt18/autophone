@@ -62,9 +62,9 @@ class AutophoneTreeherder(object):
         self.client_id = self.options.treeherder_client_id
         self.secret = self.options.treeherder_secret
         self.retry_wait = self.options.treeherder_retry_wait
-        self.bugscache_uri = '%s/api/bugscache/' % self.url
+        self.bugscache_uri = '{0!s}/api/bugscache/'.format(self.url)
 
-        logger.debug('AutophoneTreeherder: %s' % self)
+        logger.debug('AutophoneTreeherder: {0!s}'.format(self))
 
     def __str__(self):
         # Do not publish sensitive information
@@ -77,11 +77,10 @@ class AutophoneTreeherder(object):
         d = {}
         for attr in whitelist:
             d[attr] = getattr(self, attr)
-        return '%s' % d
+        return '{0!s}'.format(d)
 
     def post_request(self, machine, project, job_collection, attempts, last_attempt):
-        logger.debug('AutophoneTreeherder.post_request: %s, attempt=%d, last=%s' %
-                     (job_collection.__dict__, attempts, last_attempt))
+        logger.debug('AutophoneTreeherder.post_request: {0!s}, attempt={1:d}, last={2!s}'.format(job_collection.__dict__, attempts, last_attempt))
         client = TreeherderClient(protocol=self.protocol,
                                   host=self.server,
                                   client_id=self.client_id,
@@ -91,8 +90,7 @@ class AutophoneTreeherder(object):
             client.post_collection(project, job_collection)
             return True
         except Exception, e:
-            logger.exception('Error submitting request to Treeherder, attempt=%d, last=%s' %
-                             (attempts, last_attempt))
+            logger.exception('Error submitting request to Treeherder, attempt={0:d}, last={1!s}'.format(attempts, last_attempt))
             if self.mailer:
                 if e.response:
                     response_json = json.dumps(e.response.json(),
@@ -100,8 +98,7 @@ class AutophoneTreeherder(object):
                 else:
                     response_json = None
                 self.mailer.send(
-                    '%s attempt %d Error submitting request to Treeherder' %
-                    (utils.host(), attempts),
+                    '{0!s} attempt {1:d} Error submitting request to Treeherder'.format(utils.host(), attempts),
                     'Phone: %s\n'
                     'TreeherderClientError: %s\n'
                     'Last attempt: %s\n'
@@ -113,7 +110,7 @@ class AutophoneTreeherder(object):
         return False
 
     def queue_request(self, machine, project, job_collection):
-        logger.debug('AutophoneTreeherder.queue_request: %s' % job_collection.__dict__)
+        logger.debug('AutophoneTreeherder.queue_request: {0!s}'.format(job_collection.__dict__))
         logger.debug('AutophoneTreeherder shared_lock.acquire')
         self.shared_lock.acquire()
         try:
@@ -131,7 +128,7 @@ class AutophoneTreeherder(object):
         :param revision_hash: Treeherder revision hash of build.
         :param tests: Lists of tests to be reported.
         """
-        logger.debug('AutophoneTreeherder.submit_pending: %s' % tests)
+        logger.debug('AutophoneTreeherder.submit_pending: {0!s}'.format(tests))
         if not self.url or not revision_hash:
             logger.debug('AutophoneTreeherder.submit_pending: no url/revision hash')
             return
@@ -184,8 +181,8 @@ class AutophoneTreeherder(object):
                 'chunk': t.chunk})
             tjc.add(tj)
 
-        logger.debug('AutophoneTreeherder.submit_pending: tjc: %s' % (
-            tjc.to_json()))
+        logger.debug('AutophoneTreeherder.submit_pending: tjc: {0!s}'.format((
+            tjc.to_json())))
 
         self.queue_request(machine, project, tjc)
 
@@ -198,7 +195,7 @@ class AutophoneTreeherder(object):
         :param revision_hash: Treeherder revision hash of build.
         :param tests: Lists of tests to be reported.
         """
-        logger.debug('AutophoneTreeherder.submit_running: %s' % tests)
+        logger.debug('AutophoneTreeherder.submit_running: {0!s}'.format(tests))
         if not self.url or not revision_hash:
             logger.debug('AutophoneTreeherder.submit_running: no url/revision hash')
             return
@@ -241,8 +238,8 @@ class AutophoneTreeherder(object):
                 'chunk': t.chunk})
             tjc.add(tj)
 
-        logger.debug('AutophoneTreeherder.submit_running: tjc: %s' %
-                     tjc.to_json())
+        logger.debug('AutophoneTreeherder.submit_running: tjc: {0!s}'.format(
+                     tjc.to_json()))
 
         self.queue_request(machine, project, tjc)
 
@@ -256,7 +253,7 @@ class AutophoneTreeherder(object):
         :param revision_hash: Treeherder revision hash of build.
         :param tests: Lists of tests to be reported.
         """
-        logger.debug('AutophoneTreeherder.submit_complete: %s' % tests)
+        logger.debug('AutophoneTreeherder.submit_complete: {0!s}'.format(tests))
 
         if not self.url or not revision_hash:
             logger.debug('AutophoneTreeherder.submit_complete: no url/revision hash')
@@ -291,12 +288,12 @@ class AutophoneTreeherder(object):
             if t.test_result.failed == 0:
                 failed = '0'
             else:
-                failed = '<em class="testfail">%s</em>' % t.test_result.failed
+                failed = '<em class="testfail">{0!s}</em>'.format(t.test_result.failed)
 
             t.job_details.append({
-                'value': "%s/%s/%s" % (t.test_result.passed, failed, t.test_result.todo),
+                'value': "{0!s}/{1!s}/{2!s}".format(t.test_result.passed, failed, t.test_result.todo),
                 'content_type': 'raw_html',
-                'title': "%s-%s" % (t.job_name, t.job_symbol)
+                'title': "{0!s}-{1!s}".format(t.job_name, t.job_symbol)
             })
 
             if hasattr(t, 'phonedash_url'):
@@ -309,9 +306,9 @@ class AutophoneTreeherder(object):
 
             if (hasattr(t, 'perfherder_artifact') and
                 hasattr(t, 'perfherder_signature')):
-                perfherder_url = ('https://%s/perf.html#/graphs?series' %
-                                  self.server)
-                url = "%s=[%s,%s,1]" % (perfherder_url, project, t.perfherder_signature)
+                perfherder_url = ('https://{0!s}/perf.html#/graphs?series'.format(
+                                  self.server))
+                url = "{0!s}=[{1!s},{2!s},1]".format(perfherder_url, project, t.perfherder_signature)
                 t.job_details.append({
                     'url': url,
                     'value': 'graph',
@@ -338,27 +335,27 @@ class AutophoneTreeherder(object):
                     log_identifier = os.path.splitext(os.path.basename(
                         t.unittest_logpath))[0]
                 else:
-                    log_identifier = "%s-%s-%s-%s" % (
+                    log_identifier = "{0!s}-{1!s}-{2!s}-{3!s}".format(
                         t.name, os.path.basename(t.config_file), t.chunk,
                         machine)
                 # We must make certain the key is unique even in the
                 # event of retries.
-                log_identifier = '%s-%s' % (log_identifier, t.job_guid)
+                log_identifier = '{0!s}-{1!s}'.format(log_identifier, t.job_guid)
 
                 key_prefix = os.path.dirname(
                     urlparse.urlparse(build_url).path)
                 key_prefix = re.sub('/tmp$', '', key_prefix)
 
                 # Logcat
-                fname = '%s-logcat.log' % log_identifier
+                fname = '{0!s}-logcat.log'.format(log_identifier)
                 lname = 'logcat'
-                key = "%s/%s" % (key_prefix, fname)
+                key = "{0!s}/{1!s}".format(key_prefix, fname)
                 with tempfile.NamedTemporaryFile(suffix='logcat.txt') as f:
                     try:
                         if self.worker.is_ok():
                             for line in t.logcat.get(full=True):
-                                f.write('%s\n' % line.encode('UTF-8',
-                                                             errors='replace'))
+                                f.write('{0!s}\n'.format(line.encode('UTF-8',
+                                                             errors='replace')))
                             t.logcat.reset()
                         else:
                             # Device is in an error state so we can't
@@ -366,12 +363,12 @@ class AutophoneTreeherder(object):
                             # any logcat output we accumulated
                             # previously.
                             for line in t.logcat._accumulated_logcat:
-                                f.write('%s\n' % line.encode('UTF-8',
-                                                             errors='replace'))
+                                f.write('{0!s}\n'.format(line.encode('UTF-8',
+                                                             errors='replace')))
                     except Exception, e:
-                        logger.exception('Error reading logcat %s' % fname)
+                        logger.exception('Error reading logcat {0!s}'.format(fname))
                         t.job_details.append({
-                            'value': 'Failed to read %s: %s' % (fname, e),
+                            'value': 'Failed to read {0!s}: {1!s}'.format(fname, e),
                             'content_type': 'text',
                             'title': 'Error'})
                     try:
@@ -382,9 +379,9 @@ class AutophoneTreeherder(object):
                             'content_type': 'link',
                             'title': 'artifact uploaded'})
                     except S3Error, e:
-                        logger.exception('Error uploading logcat %s' % fname)
+                        logger.exception('Error uploading logcat {0!s}'.format(fname))
                         t.job_details.append({
-                            'value': 'Failed to upload %s: %s' % (fname, e),
+                            'value': 'Failed to upload {0!s}: {1!s}'.format(fname, e),
                             'content_type': 'text',
                             'title': 'Error'})
                 # Upload directory containing ANRs, tombstones and other items
@@ -393,8 +390,8 @@ class AutophoneTreeherder(object):
                     for f in glob.glob(os.path.join(t.upload_dir, '*')):
                         try:
                             lname = os.path.basename(f)
-                            fname = '%s-%s' % (log_identifier, lname)
-                            url = self.s3_bucket.upload(f, "%s/%s" % (
+                            fname = '{0!s}-{1!s}'.format(log_identifier, lname)
+                            url = self.s3_bucket.upload(f, "{0!s}/{1!s}".format(
                                 key_prefix, fname))
                             t.job_details.append({
                                 'url': url,
@@ -402,9 +399,9 @@ class AutophoneTreeherder(object):
                                 'content_type': 'link',
                                 'title': 'artifact uploaded'})
                         except S3Error, e:
-                            logger.exception('Error uploading artifact %s' % fname)
+                            logger.exception('Error uploading artifact {0!s}'.format(fname))
                             t.job_details.append({
-                                'value': 'Failed to upload artifact %s: %s' % (fname, e),
+                                'value': 'Failed to upload artifact {0!s}: {1!s}'.format(fname, e),
                                 'content_type': 'text',
                                 'title': 'Error'})
 
@@ -420,9 +417,9 @@ class AutophoneTreeherder(object):
 
                 # UnitTest Log
                 if t.unittest_logpath and os.path.exists(t.unittest_logpath):
-                    fname = '%s.log' % log_identifier
+                    fname = '{0!s}.log'.format(log_identifier)
                     logname = os.path.basename(t.unittest_logpath)
-                    key = "%s/%s" % (key_prefix, fname)
+                    key = "{0!s}/{1!s}".format(key_prefix, fname)
                     try:
                         logurl = self.s3_bucket.upload(t.unittest_logpath, key)
                         tj.add_log_reference(fname, logurl,
@@ -433,10 +430,10 @@ class AutophoneTreeherder(object):
                             'content_type': 'link',
                             'title': 'artifact uploaded'})
                     except Exception, e:
-                        logger.exception('Error %s uploading log %s' % (
+                        logger.exception('Error {0!s} uploading log {1!s}'.format(
                             e, fname))
                         t.job_details.append({
-                            'value': 'Failed to upload log %s: %s' % (fname, e),
+                            'value': 'Failed to upload log {0!s}: {1!s}'.format(fname, e),
                             'content_type': 'text',
                             'title': 'Error'})
                 # Autophone Log
@@ -449,9 +446,9 @@ class AutophoneTreeherder(object):
                 if t.test_logfile:
                     try:
                         t.test_logfilehandler.flush()
-                        fname = '%s-autophone.log' % log_identifier
+                        fname = '{0!s}-autophone.log'.format(log_identifier)
                         lname = 'Autophone Log'
-                        key = "%s/%s" % (key_prefix, fname)
+                        key = "{0!s}/{1!s}".format(key_prefix, fname)
                         url = self.s3_bucket.upload(t.test_logfile, key)
                         t.job_details.append({
                             'url': url,
@@ -464,10 +461,10 @@ class AutophoneTreeherder(object):
                             logurl = url
                             logname = fname
                     except Exception, e:
-                        logger.exception('Error %s uploading %s' % (
+                        logger.exception('Error {0!s} uploading {1!s}'.format(
                             e, fname))
                         t.job_details.append({
-                            'value': 'Failed to upload Autophone log: %s' % e,
+                            'value': 'Failed to upload Autophone log: {0!s}'.format(e),
                             'content_type': 'text',
                             'title': 'Error'})
 
@@ -499,9 +496,9 @@ class AutophoneTreeherder(object):
                 if not (status or test or text):
                     continue
                 if status and test and text:
-                    line = '%s | %s | %s' % (status, test, text)
+                    line = '{0!s} | {1!s} | {2!s}'.format(status, test, text)
                 elif test and text:
-                    line = '%s | %s' % (test, text)
+                    line = '{0!s} | {1!s}'.format(test, text)
                 elif text:
                     line = text
                 # XXX Need to update the log parser to return the line
@@ -522,7 +519,7 @@ class AutophoneTreeherder(object):
                             'started_linenumber': 1,
                             'finished_linenumber': 1,
                             'duration': t.end_timestamp - t.start_timestamp,
-                            'finished': '%s' % datetime.datetime.fromtimestamp(t.end_timestamp),
+                            'finished': '{0!s}'.format(datetime.datetime.fromtimestamp(t.end_timestamp)),
                             'errors': error_lines,
                             'error_count': len(error_lines),
                             'order': 0,
@@ -536,7 +533,7 @@ class AutophoneTreeherder(object):
                 }
 
             tj.add_artifact('text_log_summary', 'json', json.dumps(text_log_summary))
-            logger.debug('AutophoneTreeherder.submit_complete: text_log_summary: %s' % json.dumps(text_log_summary))
+            logger.debug('AutophoneTreeherder.submit_complete: text_log_summary: {0!s}'.format(json.dumps(text_log_summary)))
 
             tj.add_artifact('Job Info', 'json', {'job_details': t.job_details})
             tj.add_artifact('buildapi', 'json', {
@@ -549,17 +546,17 @@ class AutophoneTreeherder(object):
 
             if hasattr(t, 'perfherder_artifact') and t.perfherder_artifact:
                 jsondata = json.dumps({'performance_data': t.perfherder_artifact})
-                logger.debug("AutophoneTreeherder.submit_complete: perfherder_artifact: %s" % jsondata)
+                logger.debug("AutophoneTreeherder.submit_complete: perfherder_artifact: {0!s}".format(jsondata))
                 tj.add_artifact('performance_data', 'json', jsondata)
 
             tjc.add(tj)
-            message = 'TestResult: %s %s %s' % (t.test_result.status, t.name, build_url)
+            message = 'TestResult: {0!s} {1!s} {2!s}'.format(t.test_result.status, t.name, build_url)
             if t.message:
-                message += ', %s' % t.message
+                message += ', {0!s}'.format(t.message)
             logger.info(message)
 
-        logger.debug('AutophoneTreeherder.submit_completed: tjc: %s' %
-                     tjc.to_json())
+        logger.debug('AutophoneTreeherder.submit_completed: tjc: {0!s}'.format(
+                     tjc.to_json()))
 
         self.queue_request(machine, project, tjc)
 

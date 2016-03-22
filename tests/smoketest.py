@@ -14,7 +14,7 @@ class SmokeTest(PhoneTest):
 
     @property
     def name(self):
-        return 'autophone-smoketest%s' % self.name_suffix
+        return 'autophone-smoketest{0!s}'.format(self.name_suffix)
 
     def run_job(self):
         self.update_status(message='Running smoketest')
@@ -87,7 +87,7 @@ class SmokeTest(PhoneTest):
 
         for line in buf:
             line = line.strip()
-            self.loggerdeco.debug('check_throbber: %s' % line)
+            self.loggerdeco.debug('check_throbber: {0!s}'.format(line))
             if 'Throbber stop' in line:
                 return True
         return False

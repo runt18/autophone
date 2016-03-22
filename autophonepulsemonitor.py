@@ -197,14 +197,14 @@ class AutophonePulseMonitor(object):
         self._stopping = threading.Event()
         self.listen_thread = None
         build_exchange = Exchange(name=build_exchange_name, type='topic')
-        self.queues = [Queue(name='queue/%s/build' % userid,
+        self.queues = [Queue(name='queue/{0!s}/build'.format(userid),
                              exchange=build_exchange,
                              routing_key='build.#.finished',
                              durable=durable_queues,
                              auto_delete=not durable_queues)]
         if treeherder_url:
             jobaction_exchange = Exchange(name=jobaction_exchange_name, type='topic')
-            self.queues.append(Queue(name='queue/%s/jobactions' % userid,
+            self.queues.append(Queue(name='queue/{0!s}/jobactions'.format(userid),
                                  exchange=jobaction_exchange,
                                  routing_key='#',
                                  durable=durable_queues,
@@ -303,7 +303,7 @@ class AutophonePulseMonitor(object):
         try:
             build = data['payload']['build']
         except (KeyError, TypeError), e:
-            logger.debug('AutophonePulseMonitor.handle_build_event: %s pulse build data' % e)
+            logger.debug('AutophonePulseMonitor.handle_build_event: {0!s} pulse build data'.format(e))
             return
 
         fields = (
@@ -429,7 +429,7 @@ class AutophonePulseMonitor(object):
         self.jobaction_callback(jobaction_data)
 
     def get_treeherder_job(self, project, job_id):
-        url = '%s/api/project/%s/jobs/%s/' % (
+        url = '{0!s}/api/project/{1!s}/jobs/{2!s}/'.format(
             self.treeherder_url, project, job_id)
         return utils.get_remote_json(url)
 
@@ -437,7 +437,7 @@ class AutophonePulseMonitor(object):
         if job:
             for artifact in job['artifacts']:
                 if artifact['name'] == 'privatebuild':
-                    url = '%s%s' % (
+                    url = '{0!s}{1!s}'.format(
                         self.treeherder_url, artifact['resource_uri'])
                     return utils.get_remote_json(url)
         return None
@@ -450,14 +450,14 @@ if __name__ == "__main__":
 
     def build_callback(build_data):
         logger = logging.getLogger()
-        logger.debug('PULSE BUILD FOUND %s' % build_data)
+        logger.debug('PULSE BUILD FOUND {0!s}'.format(build_data))
 
     def jobaction_callback(job_action):
         logger = logging.getLogger()
         if job_action['job_group_name'] != 'Autophone':
             return
-        logger.debug('JOB ACTION FOUND %s' % json.dumps(
-            job_action, sort_keys=True, indent=4))
+        logger.debug('JOB ACTION FOUND {0!s}'.format(json.dumps(
+            job_action, sort_keys=True, indent=4)))
 
     logging.basicConfig()
     logger = logging.getLogger()

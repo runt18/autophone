@@ -62,11 +62,11 @@ class Jobs(object):
             conn.close()
 
     def report_sql_error(self, attempt, email_sent, sql, values):
-        message = '%s %s' % (sql, values)
+        message = '{0!s} {1!s}'.format(sql, values)
         logger.exception(message)
         if attempt > self.SQL_MAX_RETRIES and not email_sent:
             email_sent = True
-            email_subject = '%s jobs SQL Error' % utils.host()
+            email_subject = '{0!s} jobs SQL Error'.format(utils.host())
             email_body = (
                 'Attempt %d to execute %s failed.\n'
                 '%s'
@@ -88,7 +88,7 @@ class Jobs(object):
             except sqlite3.OperationalError:
                 email_sent = self.report_sql_error(
                     attempt, email_sent,
-                    'connect(%s)' % self.filename,
+                    'connect({0!s})'.format(self.filename),
                     None)
         return conn
 
@@ -103,7 +103,7 @@ class Jobs(object):
             except sqlite3.OperationalError:
                 email_sent = self.report_sql_error(
                     attempt, email_sent,
-                    '_commit_connection(%s)' % self.filename,
+                    '_commit_connection({0!s})'.format(self.filename),
                     None)
 
     def _close_connection(self, conn):
@@ -117,7 +117,7 @@ class Jobs(object):
             except sqlite3.OperationalError:
                 email_sent = self.report_sql_error(
                     attempt, email_sent,
-                    '_close_connection(%s)' % self.filename,
+                    '_close_connection({0!s})'.format(self.filename),
                     None)
 
     def _execute_sql(self, conn, sql, values=()):
@@ -148,7 +148,7 @@ class Jobs(object):
                 revision=None, revision_hash=None, tests=None,
                 enable_unittests=False, device=None,
                 attempts=0):
-        logger.debug('jobs.new_job: %s %s %s %s %s %s %s %s %s %s' % (
+        logger.debug('jobs.new_job: {0!s} {1!s} {2!s} {3!s} {4!s} {5!s} {6!s} {7!s} {8!s} {9!s}'.format(
             build_url, build_id, changeset, tree, revision, revision_hash,
             tests, enable_unittests, device, attempts))
         if not device:
@@ -317,13 +317,13 @@ class Jobs(object):
                     test.repos == test_row['repos']):
                     test.job_guid = test_row['guid']
                     job['tests'].append(test)
-        logger.debug('jobs.get_next_job: %s' % job)
+        logger.debug('jobs.get_next_job: {0!s}'.format(job))
         self._commit_connection(conn)
         self._close_connection(conn)
         return job
 
     def cancel_test(self, test_guid, device=None):
-        logger.debug('jobs.cancel_test: test %s device %s' % (
+        logger.debug('jobs.cancel_test: test {0!s} device {1!s}'.format(
             test_guid, device))
         if not device:
             device = self.default_device
@@ -362,7 +362,7 @@ class Jobs(object):
         count = test_cursor.fetchone()[0]
         test_cursor.close()
         if count == 0:
-            logger.debug('jobs.cancel_test: delete job_id %s device %s' % (
+            logger.debug('jobs.cancel_test: delete job_id {0!s} device {1!s}'.format(
                 job_id,
                 device))
             self._execute_sql(
@@ -373,7 +373,7 @@ class Jobs(object):
         self._close_connection(conn)
 
     def new_treeherder_job(self, machine, project, job_collection):
-        logger.debug('jobs.new_treeherder_job: %s %s %s' % (machine, project, job_collection.__dict__))
+        logger.debug('jobs.new_treeherder_job: {0!s} {1!s} {2!s}'.format(machine, project, job_collection.__dict__))
         attempts = 0
         now = datetime.datetime.now().isoformat()
         conn = self._conn()
@@ -412,27 +412,27 @@ class Jobs(object):
             values=(job['attempts'], job['last_attempt'],
                     job['id']))
 
-        logger.debug('jobs.get_next_treeherder_job: %s' % job)
+        logger.debug('jobs.get_next_treeherder_job: {0!s}'.format(job))
         self._commit_connection(conn)
         self._close_connection(conn)
         return job
 
     def treeherder_job_completed(self, id):
-        logger.debug('jobs.treeherder_job_completed: %s' % id)
+        logger.debug('jobs.treeherder_job_completed: {0!s}'.format(id))
         conn = self._conn()
         self._execute_sql(conn, 'delete from treeherder where id=?', values=(id,))
         self._commit_connection(conn)
         self._close_connection(conn)
 
     def test_completed(self, test_guid):
-        logger.debug('jobs.test_completed: %s' % test_guid)
+        logger.debug('jobs.test_completed: {0!s}'.format(test_guid))
         conn = self._conn()
         self._execute_sql(conn, 'delete from tests where guid=?', values=(test_guid,))
         self._commit_connection(conn)
         self._close_connection(conn)
 
     def job_completed(self, job_id):
-        logger.debug('jobs.job_completed: %s' % job_id)
+        logger.debug('jobs.job_completed: {0!s}'.format(job_id))
         conn = self._conn()
         self._execute_sql(conn, 'delete from tests where jobid=?', values=(job_id,))
         self._execute_sql(conn, 'delete from jobs where id=?', values=(job_id,))
